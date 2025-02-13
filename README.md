@@ -25,7 +25,7 @@ Installation of `XML Parser` is based on build system.
 
 	```bash
 	#Your favorite directory
-	$ git clone https://github.com/CloudAvid/pvm-ipc.git
+	$ git clone https://github.com/mohammadDerhami/XML-Parser.git
 	```
 
 2. Then for create build directory:
