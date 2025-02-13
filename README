@@ -1,0 +1,58 @@
+#Project Title
+**XML Parser**
+
+## Description
+This project is a socket server application that process XML data received from clients and stores it in a database.
+
+## Features
+- Read the first 15 bytes as the size of incoming data.
+- Processes the received XML data.
+- Stores data in a database.
+- Allows retrieval of data in XML format from the database.
+- Supports multi-client communication, enabling reception of data multiple times.
+
+## Requirements
+- **libxml2**: for XML processing.
+- **rapidjson**: library for JSON processing.
+
+## Installation
+
+ Follow these steps to install and run the project:
+
+1.**Clone this repository**:
+
+clone the project repository from GitHub to your local machine.
+git clone<>
+
+
+
+2.**Navigate to the project directory**: 
+
+change your current working directory to the project folder.
+
+
+
+3.**Create a build directory**:
+
+mkdir build
+cd build
+
+
+
+4.**Run cmake to configure the project**:
+
+cmake ..
+
+
+
+5.**Compile the project**:
+
+make
+
+
+
+6.**Run the project**:
+
+./dbm -f <config file path> : use the specified configuration file.
+./dbm -h : display help message.
+./dbm -v : display the current version of the application.
