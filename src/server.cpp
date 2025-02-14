@@ -1,10 +1,3 @@
-/**
- *
- * \File : server.cpp
- *
- * \Author : MohammadDerhami
- *
- */
 #include "server.h"
 
 /**

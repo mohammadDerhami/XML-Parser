@@ -15,7 +15,6 @@
 #include <arpa/inet.h>
 #include <condition_variable>
 #include <cstring>
-#include <fstream>
 #include <iostream>
 #include <mutex>
 #include <netinet/in.h>

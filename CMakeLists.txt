@@ -1,22 +1,101 @@
-cmake_minimum_required(VERSION 3.10)
-
-project(dbm VERSION 1.0)
-
+cmake_minimum_required(VERSION 3.14)
+project(dbm LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
-include_directories(include)
-include_directories(/usr/include/rapidjson/include/)
 
-find_package(LibXml2 REQUIRED)
-include_directories(${LIBXML2_INCLUDE_DIRS})
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
+    cmake_policy(SET CMP0048 NEW)
+    cmake_policy(SET CMP0077 NEW)
+endif()
 
-file(GLOB SOURCES "src/*.cpp")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-Wno-class-memaccess)
+    add_compile_options(-Wno-error=class-memaccess)
+endif()
 
-add_executable(dbm src/main.cpp src/server.cpp src/config.cpp src/parseXml.cpp src/database.cpp )
+option(FETCH_MISSING_DEPS "Automatically fetch missing dependencies" ON)
 
-target_link_libraries(dbm sqlite3 pthread ${LIBXML2_LIBRARIES})
+include(FetchContent)
+include(ExternalProject)
+
+set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "Disable examples")
+set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL "Disable tests")
+set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL "Disable docs")
+
+find_package(RapidJSON QUIET)
+if (NOT RapidJSON_FOUND)
+    if (FETCH_MISSING_DEPS)
+        message(STATUS "Fetching RapidJSON from GitHub...")
+        FetchContent_Declare(
+            rapidjson
+            GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
+            GIT_TAG v1.1.0
+            CMAKE_ARGS
+                -DRAPIDJSON_BUILD_EXAMPLES=OFF
+                -DRAPIDJSON_BUILD_TESTS=OFF
+                -DRAPIDJSON_BUILD_DOC=OFF
+        )
+        FetchContent_MakeAvailable(rapidjson)
+        set(RAPIDJSON_INCLUDE_DIR ${rapidjson_SOURCE_DIR}/include) 
+    else()
+        message(FATAL_ERROR "RapidJSON not found and FETCH_MISSING_DEPS is disabled")
+    endif()
+else()
+    set(RAPIDJSON_INCLUDE_DIR ${RapidJSON_INCLUDE_DIRS})
+endif()
+
+find_package(LibXml2 REQUIRED HINTS ${OTHER_LIBXML2_DIRS})
+if (NOT LibXml2_FOUND)
+    message(FATAL_ERROR "LibXML2 not found, ensure it is installed.")
+else()
+    message(STATUS "Found LibXML2 at ${LibXml2_INCLUDE_DIRS}")
+endif()
+
+
+find_package(SQLite3 QUIET)
+if (NOT SQLite3_FOUND AND FETCH_MISSING_DEPS)
+    message(STATUS "Fetching SQLite3...")
+    FetchContent_Declare(
+        sqlite3_src
+        URL https://sqlite.org/2024/sqlite-amalgamation-3450200.zip
+    )
+    FetchContent_MakeAvailable(sqlite3_src)
+    add_library(sqlite3 STATIC ${sqlite3_src_SOURCE_DIR}/sqlite3.c)
+    target_include_directories(sqlite3 PUBLIC ${sqlite3_src_SOURCE_DIR})
+endif()
+
+add_executable(dbm
+    src/main.cpp
+    src/server.cpp
+    src/config.cpp
+    src/parseXml.cpp
+    src/database.cpp
+)
+
+target_include_directories(dbm PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${RAPIDJSON_INCLUDE_DIR}
+    ${LIBXML2_INCLUDE_DIRS}
+)
+
+target_link_libraries(dbm PRIVATE
+    sqlite3
+    pthread
+    ${LIBXML2_LIBRARIES}
+)
+
+target_compile_definitions(dbm PRIVATE
+    -DRAPIDJSON_HAS_STDSTRING=1
+    -DRAPIDJSON_NOMEMBERITERATORCLASS
+)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(dbm PRIVATE
+        -Wno-class-memaccess
+        -Wno-error=class-memaccess
+    )
+endif()
+
 

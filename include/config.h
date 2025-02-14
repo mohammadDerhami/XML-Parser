@@ -15,7 +15,6 @@
 #include <iostream>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
-#include <string>
 #include <unistd.h>
 /**
  * @class ServerConfiguration

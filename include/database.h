@@ -17,7 +17,6 @@
 #include <sqlite3.h>
 #include <sstream>
 #include <vector>
-
 /**
  * DatabaseManager Class
  */
