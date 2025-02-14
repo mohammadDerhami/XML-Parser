@@ -56,16 +56,16 @@ void XmlParser::storeXmlNodesInDatabase(Document &doc, DatabaseManager *database
     while (current || ! nodeStack.empty()) {
         while (current) {
             nodeStack.push(current);
-            current = current->getChild();
+            current = current->getChild(doc);
         }
 
         current = nodeStack.top();
         nodeStack.pop();
 
         if (current->isElementNode()) {
-            if (current->hasPropertyNode() && current->isObjectNode()) {
-                current->propertyNames(names);
-                current->propertyValues(values);
+            if (current->hasPropertyNode(doc) && current->isObjectNode(doc)) {
+                current->propertyNames(names, doc);
+                current->propertyValues(values, doc);
 
                 if (database->isExistTable(current->getName()))
 
@@ -78,7 +78,7 @@ void XmlParser::storeXmlNodesInDatabase(Document &doc, DatabaseManager *database
             }
         }
 
-        current = current->getNext();
+        current = current->getNext(doc);
     }
 }
 
@@ -119,7 +119,7 @@ void Document::initialize()
         throw ParseXmlException("Empty xml document!!!\n");
     }
 
-    root = new Node(xmlRoot);
+    root = createNode(xmlRoot);
     determineType();
 
     if (! isSelectType) {
@@ -135,7 +135,7 @@ void Document::determineType()
 {
     std::string operationType;
 
-    for (Node *node = root->getChild(); node; node = node->getNext()) {
+    for (Node *node = root->getChild(*this); node; node = node->getNext(*this)) {
         if (node->isElementNode() && strcmp(node->getName().c_str(), "operation") == 0) {
             xmlChar *type = xmlGetProp(node->getXmlNode(), BAD_CAST "type");
             if (type != nullptr) {
@@ -161,22 +161,27 @@ void Document::findUuid()
     while (current || ! nodeStack.empty()) {
         while (current) {
             nodeStack.push(current);
-            current = current->getChild();
+            current = current->getChild(*this);
         }
 
         current = nodeStack.top();
         nodeStack.pop();
 
-        if (current->isElementNode()) {
-            if (strcmp(current->getName().c_str(), "uuid") == 0) {
-                uuid = current->getContent();
-                mainTable = current->getParent()->getName();
-                return;
-            }
+        if (strcmp(current->getName().c_str(), "uuid") == 0) {
+            uuid = current->getContent();
+            mainTable = current->getParent(*this)->getName();
+            return;
         }
 
-        current = current->getNext();
+        current = current->getNext(*this);
     }
+}
+/* Creates node and push it in the vector*/
+Node *Document::createNode(xmlNodePtr xmlNode)
+{
+    Node *node = new Node(xmlNode);
+    allNodes.push_back(node);
+    return node;
 }
 /**
  *
@@ -185,39 +190,39 @@ void Document::findUuid()
  */
 
 /* Returns child of the node */
-Node *Node::getChild()
+Node *Node::getChild(Document &doc)
 {
     if (xmlNode_->children) {
-        childNode = new Node(xmlNode_->children);
-        return childNode;
+        child = doc.createNode(xmlNode_->children);
+        return child;
     }
     return nullptr;
 }
 
 /* Returns next node */
-Node *Node::getNext()
+Node *Node::getNext(Document &doc)
 {
     if (xmlNode_->next) {
-        nextNode = new Node(xmlNode_->next);
-        return nextNode;
+        next = doc.createNode(xmlNode_->next);
+        return next;
     }
     return nullptr;
 }
 
 /* Returns parent node */
-Node *Node::getParent()
+Node *Node::getParent(Document &doc)
 {
     if (xmlNode_->parent) {
-        parentNode = new Node(xmlNode_->parent);
-        return parentNode;
+        parent = doc.createNode(xmlNode_->parent);
+        return parent;
     }
     return nullptr;
 }
 
 /* Checks whether the node is an object node or not */
-bool Node::isObjectNode()
+bool Node::isObjectNode(Document &doc)
 {
-    for (Node *child = this->getChild(); child; child = child->getNext()) {
+    for (Node *child = this->getChild(doc); child; child = child->getNext(doc)) {
         if (child->isElementNode()) {
             return true;
         }
@@ -232,16 +237,16 @@ bool Node::isElementNode()
 }
 
 /* Checks whether the node is a property node or not */
-bool Node::isPropertyNode()
+bool Node::isPropertyNode(Document &doc)
 {
-    return ! this->isObjectNode();
+    return ! this->isObjectNode(doc);
 }
 
 /* Checks whether the node has a property node or not */
-bool Node::hasPropertyNode()
+bool Node::hasPropertyNode(Document &doc)
 {
-    for (Node *child = this->getChild(); child; child = child->getNext()) {
-        if (child->isPropertyNode() && child->isElementNode()) {
+    for (Node *child = this->getChild(doc); child; child = child->getNext(doc)) {
+        if (child->isPropertyNode(doc) && child->isElementNode()) {
             return true;
         }
     }
@@ -267,11 +272,11 @@ std::string Node::getName()
 }
 
 /* Fills a vector with the names of properties for the current node */
-void Node::propertyNames(std::vector<std::string> &names)
+void Node::propertyNames(std::vector<std::string> &names, Document &doc)
 {
     names.clear();
-    for (Node *child = this->getChild(); child; child = child->getNext()) {
-        if (child->isPropertyNode() && child->isElementNode()) {
+    for (Node *child = this->getChild(doc); child; child = child->getNext(doc)) {
+        if (child->isPropertyNode(doc) && child->isElementNode()) {
             if (child->getName() == "uuid")
                 continue;
             names.push_back(child->getName());
@@ -280,11 +285,11 @@ void Node::propertyNames(std::vector<std::string> &names)
 }
 
 /* Fills a vector with the values of properties for the current node */
-void Node::propertyValues(std::vector<std::string> &values)
+void Node::propertyValues(std::vector<std::string> &values, Document &doc)
 {
     values.clear();
-    for (Node *child = this->getChild(); child; child = child->getNext()) {
-        if (child->isPropertyNode() && child->isElementNode()) {
+    for (Node *child = this->getChild(doc); child; child = child->getNext(doc)) {
+        if (child->isPropertyNode(doc) && child->isElementNode()) {
             if (child->getName() == "uuid")
                 continue;
             values.push_back(child->getContent());

@@ -32,7 +32,7 @@
 class Client
 {
 private:
-    int clientSocket = -1;
+    int clientSocket;
 
     /*Input data*/
     std::string xmlData;
@@ -56,14 +56,18 @@ private:
     std::condition_variable cv;
 
     /*Indicates whether the result is ready for use*/
-    bool resultReady = false;
+    bool resultReady;
 
     /*Indicates whether the data is ready for processing*/
-    bool dataReady = false;
+    bool dataReady;
 
 public:
     /*Constructor*/
-    Client(int socket, int id) : clientSocket(socket), id(id)
+    Client(int socket, int id) :
+        clientSocket(socket),
+        id(id),
+        resultReady(false),
+        dataReady(false)
     {
     }
 
@@ -196,13 +200,13 @@ private:
     int port;
 
     /*Socket discriptor*/
-    int sockfd = -1;
+    int sockfd;
 
     /*Indicates whether the socket is bound to a port.*/
-    bool isBound = false;
+    bool isBound;
 
     /*Indicates whether the socket is in a listening stat*/
-    bool isListening = false;
+    bool isListening;
 
     /*Mutex*/
     std::mutex socketMtx;
@@ -212,7 +216,7 @@ private:
     std::condition_variable cv;
 
     /*Number of clients*/
-    int clientsNum = 0;
+    int clientsNum;
 
     /*Vector to store clients*/
     std::vector<Client *> clients;
@@ -326,11 +330,15 @@ private:
 
 public:
     /*Constructor*/
-    Socket(ServerConfiguration &serverConfig)
+    Socket(ServerConfiguration &serverConfig) :
+        sockfd(-1),
+        isBound(false),
+        isListening(false),
+        clientsNum(0)
     {
         this->serverConfig = serverConfig;
-	ip = serverConfig.getIp();
-	port = serverConfig.getPort();
+        ip = serverConfig.getIp();
+        port = serverConfig.getPort();
     }
 
     /*Destructor*/

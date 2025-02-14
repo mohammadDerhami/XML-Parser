@@ -16,6 +16,8 @@
 #include <stack>
 #include <vector>
 
+class Document;
+
 /*
  * Class Node
  * @brief:
@@ -30,29 +32,30 @@ class Node
 {
 public:
     /*Constructor*/
-    Node(xmlNodePtr xmlNode) : xmlNode_(xmlNode)
+    Node(xmlNodePtr xmlNode) : xmlNode_(xmlNode), next(nullptr), parent(nullptr), child(nullptr)
     {
     }
 
-    /*Destructor*/
-    ~Node()
-    {
-        delete parentNode;
-        delete nextNode;
-        delete childNode;
-    }
-
-    /* @brief Checks whether the node is an object node or not */
-    bool isObjectNode();
+    /*
+     * @brief Checks whether the node is an object node or not
+     * @param instance of document
+     */
+    bool isObjectNode(Document &doc);
 
     /* @brief Checks whether the node is an element node or not */
     bool isElementNode();
 
-    /* @brief Checks whether the node is a property node or not */
-    bool isPropertyNode();
+    /*
+     * @brief Checks whether the node is a property node or not
+     * @param instance of document
+     */
+    bool isPropertyNode(Document &doc);
 
-    /* @brief Checks whether the node has a property node or not */
-    bool hasPropertyNode();
+    /*
+     * @brief Checks whether the node has a property node or not
+     * @param instance of document
+     */
+    bool hasPropertyNode(Document &doc);
 
     /*
      * @brief Returns the content of the node
@@ -70,35 +73,37 @@ public:
      * @brief Fills a vector with the names of properties of the current
      * node
      * @param names a refrence to a vector where property names will be
-     * stored.
+     * stored , instance of document
      */
-    void propertyNames(std::vector<std::string> &names);
+    void propertyNames(std::vector<std::string> &names, Document &doc);
 
     /*
      * @brief Fills a vector with the values of properties of the current
      * node
      * @param names a refrence to a vector where property values will be
-     * stored.
+     * stored , instance of document
      */
-    void propertyValues(std::vector<std::string> &values);
+    void propertyValues(std::vector<std::string> &values, Document &doc);
 
     /*
      * @brief Returns child of the node
-     * @return pointer from the child of the node
+     * @return pointer from the child of the node ,instance of document
      */
-    Node *getChild();
+    Node *getChild(Document &doc);
 
     /*
      * @brief Returns next node
+     * @param instance of document
      * @return pointer from the next of the node
      */
-    Node *getNext();
+    Node *getNext(Document &doc);
 
     /*
      * @brief Returns parent node
+     * @param instance of document
      * @return pointer from the parent of the node.
      */
-    Node *getParent();
+    Node *getParent(Document &doc);
 
     /* @brief Getter for xmlNode_ */
     xmlNodePtr getXmlNode() const
@@ -113,9 +118,9 @@ public:
     }
 
 private:
-    Node *parentNode = nullptr;
-    Node *childNode = nullptr;
-    Node *nextNode = nullptr;
+    Node *parent;
+    Node *child;
+    Node *next;
 
     xmlNodePtr xmlNode_;
 
@@ -126,7 +131,6 @@ private:
      */
     std::string xmlCharToString(const xmlChar *xml);
 };
-
 /*
  * Class Document of XML
  */
@@ -134,7 +138,7 @@ class Document
 {
 public:
     /*Constructor*/
-    Document(const std::string &xmlData)
+    Document(const std::string &xmlData) : doc_(nullptr), root(nullptr)
     {
         this->xmlData = xmlData;
         initialize();
@@ -143,7 +147,11 @@ public:
     /*Destructor*/
     ~Document()
     {
-        delete root;
+        for (Node *node : allNodes)
+            delete node;
+
+        allNodes.clear();
+
         if (doc_)
             xmlFreeDoc(doc_);
         xmlCleanupParser();
@@ -169,9 +177,18 @@ public:
         return mainTable;
     }
 
+    /*
+     * @brief create node and push it in the vector
+     * @param xmlNode
+     * @return pointer to node
+     */
+    Node *createNode(xmlNodePtr xmlNode);
+
 private:
-    xmlDocPtr doc_ = nullptr;
-    Node *root = nullptr;
+    xmlDocPtr doc_;
+    Node *root;
+    /*Vector to store all nodes*/
+    std::vector<Node *> allNodes;
     std::string uuid;
     std::string xmlData;
     std::string mainTable;
