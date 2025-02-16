@@ -15,7 +15,7 @@
  *
  */
 
-/*Config program*/
+/*Configures the application by parsing command-line arguments and loading the configuraion file.*/
 void Configuration::config(int argc, char *argv[])
 {
     std::string filePath = commandLineArgs(argc, argv);
@@ -23,7 +23,7 @@ void Configuration::config(int argc, char *argv[])
     configurationProgram(filePath);
 }
 
-/*Parsing command line arguments with getopt*/
+/*Parses command-line arguments to determine the configuraiton file path.*/
 std::string Configuration::commandLineArgs(int argc, char *argv[])
 {
     if (argc == 1) {
@@ -76,7 +76,7 @@ std::string Configuration::commandLineArgs(int argc, char *argv[])
     return filePath;
 }
 
-/* Parse json and configuration program.*/
+/* Parses the json configuration file and sets the corresponding setting in the application.*/
 void Configuration::configurationProgram(const std::string &configFilePath)
 {
     /* open file */
@@ -120,7 +120,7 @@ void Configuration::configurationProgram(const std::string &configFilePath)
     std::cout << "Program configuraiton was seccussful.\n";
 }
 
-/*Print help of program */
+/*Prints the help message for command-line usage.*/
 
 void Configuration::printHelp()
 {
@@ -133,7 +133,7 @@ void Configuration::printHelp()
                  "current version of the application.\n";
 }
 
-/*Print version of program*/
+/*Prints the current version of the application */
 
 void Configuration::printVersion()
 {

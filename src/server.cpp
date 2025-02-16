@@ -4,7 +4,10 @@
  * Implementation the "Socket" class
  */
 
-/* This method create socket */
+/*
+ * Creates a TCP socket , binds it to the specified address ,and starts listening for incominng
+ * clients connections.
+ */
 void Socket::createSocket()
 {
     try {
@@ -33,8 +36,8 @@ void Socket::createSocket()
 }
 
 /*
- * This method accepts client and push back client to clients(vector
- * to store clients)
+ * Accepts incoming client connections and creates a new Client	object
+ * for each connected client. each client is handled in a new thread.
  */
 void Socket::acceptClient(sockaddr_in address, int addressLen)
 {
@@ -58,7 +61,10 @@ void Socket::acceptClient(sockaddr_in address, int addressLen)
     }
 }
 
-/* This function handle clients (reads data size and reads data) */
+/*
+ * Handles communication with the connected client ,including reading data from the client ,
+ * processing it and sending back results.
+ * */
 void Socket::handleClient(Client *client)
 {
     int clientSocket = client->getClientSocket();
@@ -113,7 +119,16 @@ void Socket::handleClient(Client *client)
     closeClient(client);
 }
 
-/* Read one character from client(client choice)*/
+/*
+ * Reads a single characters choice from the client to determine
+ * whether to continue or stop processing.
+ *
+ * Note: The buffer size is set to 128 bytes,
+ * although we only read one character from the buffer.
+ * this is done to handle additional input from the client
+ * that may come in after the character ,such as newline characters
+ * or other inputs.
+ */
 char Socket::readClientChoice(Client *client)
 {
     char buffer[128];
@@ -128,7 +143,16 @@ char Socket::readClientChoice(Client *client)
     return buffer[0];
 }
 
-/* Read dataSize from client */
+/*
+ * Reads the size of the data that the client intends to sent.
+ * the size must be a 15 digits string.
+ *
+ * Note: The buffer size is set to 1024 bytes,
+ * although we only read 15 characters from the buffer.
+ * this is done to handle additional input from the client
+ * that may come in after the character ,such as newline characters
+ * or other inputs.
+ */
 int Socket::readDataSize(Client *client)
 {
     char buffer[1024];
@@ -158,7 +182,7 @@ int Socket::readDataSize(Client *client)
         return -1;
     }
 }
-/* Read data of specified size */
+/* Reads the data sent by the client with the specified size */
 int Socket::readData(Client *client, char *buffer, int size)
 {
     int totalRead = 0;
@@ -193,14 +217,14 @@ int Socket::readData(Client *client, char *buffer, int size)
     return totalRead;
 }
 
-/*Push client to waitingClients queue*/
+/*Pushes the Client object to the waitingClients queue for processing.*/
 void Socket::pushToQueue(Client *client)
 {
     std::lock_guard<std::mutex> lock(socketMtx);
     waitingClients.push(client);
 }
 
-/* Stop server */
+/* Stops the server by closing the socket and cleaning up resources. */
 void Socket::stop()
 {
     isBound = false;
@@ -215,13 +239,13 @@ void Socket::stop()
     std::cout << "Server stoped.\n";
 }
 
-/* Checks whether socket is running or not */
+/* Checks if the socket is currently running(bound and listening)*/
 bool Socket::isRunning()
 {
     return isBound && isListening && sockfd > 0;
 }
 
-/* Connect the socket to the specified address */
+/* Binds the socket to the specified address */
 void Socket::bindSocket(sockaddr_in address, int addressLen)
 {
     if (bind(sockfd, (struct sockaddr *) &address, addressLen) < 0) {
@@ -229,10 +253,7 @@ void Socket::bindSocket(sockaddr_in address, int addressLen)
     }
 }
 
-/*
- * This function sets up the server socket to listen for incoming client
- * connections.
- */
+/* Sets up the server socket to listen for incoming client connections.*/
 void Socket::listenForClients()
 {
     if (listen(sockfd, serverConfig.getMaxConnection()) < 0) {
@@ -240,7 +261,7 @@ void Socket::listenForClients()
     }
 }
 
-/* Set setting of socket */
+/* Configures the socket with specified IP address and port. */
 sockaddr_in Socket::setup()
 {
     sockaddr_in address;
@@ -248,18 +269,15 @@ sockaddr_in Socket::setup()
     int addrLen = sizeof(address);
     memset(&address, 0, addrLen);
 
-    /* ipv4 */
     address.sin_family = AF_INET;
 
-    /* set IP */
     inet_pton(AF_INET, ip.c_str(), (void *) &address.sin_addr);
 
-    /* set port */
     address.sin_port = htons(port);
 
     return address;
 }
-/* Print input data of client */
+/* Prints the XML data received from the client to the colsole. */
 void Socket::printClientData(Client *client)
 {
     coutMtx.lock();
@@ -267,21 +285,21 @@ void Socket::printClientData(Client *client)
     coutMtx.unlock();
 }
 
-/*Print message */
+/*Prints a message indicating that a client has closed their connection. */
 void Socket::printClientClose(Client *client)
 {
     coutMtx.lock();
     std::cout << "client with id " << client->getId() << " closed.\n";
     coutMtx.unlock();
 }
-/*Print message */
+/*Prints a message indicating that a client has joined the server.*/
 void Socket::printClientJoin(Client *client)
 {
     coutMtx.lock();
     std::cout << "client with id  " << client->getId() << " joined.\n";
     coutMtx.unlock();
 }
-/*Close client*/
+/*Closes the socket connection for the specified client and prints a close message.*/
 void Socket::closeClient(Client *client)
 {
     close(client->getClientSocket());
@@ -295,7 +313,7 @@ void Socket::closeClient(Client *client)
  *
  */
 
-/*Reset the client status for reuse*/
+/*Resets the client status for reuse by clearing results and data flags.*/
 void Client::reset()
 {
     std::lock_guard<std::mutex> lock(clientMtx);

@@ -5,7 +5,7 @@
  *
  */
 
-/*Process and store xml data */
+/*Process xml data received from a client and stores it in the database */
 void XmlParser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
 {
     try {
@@ -30,7 +30,7 @@ void XmlParser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
     }
 }
 
-/*Handle exception*/
+/*Handles exceptions that occur during XML parsing or database operation*/
 void XmlParser::handleException(Client *client, const std::exception &e)
 {
     std::string message = "Error : " + std::string(e.what());
@@ -38,7 +38,10 @@ void XmlParser::handleException(Client *client, const std::exception &e)
     client->getCV().notify_one();
 }
 
-/*Process all nodes backtracking , create and insert into database*/
+/*
+ *Traverses the XML document's nodes and stores them in the database.
+ *Utilizes stack for backtracking through child nodes.
+ */
 void XmlParser::storeXmlNodesInDatabase(Document &doc, DatabaseManager *database)
 {
     /* Vector to store the names of each property of the node */
@@ -82,7 +85,7 @@ void XmlParser::storeXmlNodesInDatabase(Document &doc, DatabaseManager *database
     }
 }
 
-/* Insert into database */
+/* Inserts data into the specified table in the database*/
 void XmlParser::insertIntoDatabase(DatabaseManager *database, const std::string &uuid,
                                    std::vector<std::string> &names,
                                    std::vector<std::string> &values, Node *node)
@@ -90,7 +93,7 @@ void XmlParser::insertIntoDatabase(DatabaseManager *database, const std::string 
     database->insertIntoTable(uuid, names, values, node->getName());
 }
 
-/* Create table into database */
+/* Create a new table in the database based on node properties */
 void XmlParser::createTableIntoDatabase(DatabaseManager *database, const std::string &mainTable,
                                         Node *node, std::vector<std::string> &names)
 {
@@ -105,7 +108,10 @@ void XmlParser::createTableIntoDatabase(DatabaseManager *database, const std::st
  *
  */
 
-/*Initialize variables*/
+/*
+ * Initializes the Document object by parsing the provided XML data.
+ * throws an exception if the document is invalid or empty
+ */
 void Document::initialize()
 {
     doc_ = xmlReadMemory(xmlData.c_str(), xmlData.length(), nullptr, nullptr, 0);
@@ -130,7 +136,10 @@ void Document::initialize()
     }
 }
 
-/*Determine the input type*/
+/*
+ *Determines the type of the XML operation(select or insert).
+ *Updates the isSelectType.
+ */
 void Document::determineType()
 {
     std::string operationType;
@@ -152,7 +161,10 @@ void Document::determineType()
         isSelectType = false;
 }
 
-/* Finds uuid and values mainTable */
+/*
+ * Finds the UUID and the main table name from the XML nodes.
+ * Throws an exception if the UUID is not found.
+ */
 void Document::findUuid()
 {
     Node *current = root;
@@ -176,7 +188,10 @@ void Document::findUuid()
         current = current->getNext(*this);
     }
 }
-/* Creates node and push it in the vector*/
+/*
+ * Creates a new node object from the given XML node pointer.
+ * Adds the created node to the vector.
+ */
 Node *Document::createNode(xmlNodePtr xmlNode)
 {
     Node *node = new Node(xmlNode);
@@ -189,7 +204,7 @@ Node *Document::createNode(xmlNodePtr xmlNode)
  *
  */
 
-/* Returns child of the node */
+/* Returns the child of the current node */
 Node *Node::getChild(Document &doc)
 {
     if (xmlNode_->children) {
@@ -199,7 +214,7 @@ Node *Node::getChild(Document &doc)
     return nullptr;
 }
 
-/* Returns next node */
+/* Returns the next node of the current node */
 Node *Node::getNext(Document &doc)
 {
     if (xmlNode_->next) {
@@ -209,7 +224,7 @@ Node *Node::getNext(Document &doc)
     return nullptr;
 }
 
-/* Returns parent node */
+/* Returns the parent node of the current node */
 Node *Node::getParent(Document &doc)
 {
     if (xmlNode_->parent) {
@@ -219,7 +234,7 @@ Node *Node::getParent(Document &doc)
     return nullptr;
 }
 
-/* Checks whether the node is an object node or not */
+/* Checks if the current node is an object node(has child element)*/
 bool Node::isObjectNode(Document &doc)
 {
     for (Node *child = this->getChild(doc); child; child = child->getNext(doc)) {
@@ -230,19 +245,19 @@ bool Node::isObjectNode(Document &doc)
     return false;
 }
 
-/* Checks whether the node is an element node or not */
+/* Checks if the current node is an element node*/
 bool Node::isElementNode()
 {
     return xmlNode_->type == XML_ELEMENT_NODE;
 }
 
-/* Checks whether the node is a property node or not */
+/* Checks if the current node ia a property node(not an object)*/
 bool Node::isPropertyNode(Document &doc)
 {
     return ! this->isObjectNode(doc);
 }
 
-/* Checks whether the node has a property node or not */
+/* Checks if the current node has any property nodes*/
 bool Node::hasPropertyNode(Document &doc)
 {
     for (Node *child = this->getChild(doc); child; child = child->getNext(doc)) {
@@ -253,25 +268,25 @@ bool Node::hasPropertyNode(Document &doc)
     return false;
 }
 
-/* Converts xmlChar to string */
+/* Converts an xmlChar object to string */
 std::string Node::xmlCharToString(const xmlChar *xml)
 {
     return std::string(reinterpret_cast<const char *>(xml));
 }
 
-/* Returns the content of the node */
+/* Returns the content of the current node */
 std::string Node::getContent()
 {
     return xmlCharToString(xmlNodeGetContent(xmlNode_));
 }
 
-/* Returns the name of the node */
+/* Returns the name of the current node */
 std::string Node::getName()
 {
     return xmlCharToString(xmlNode_->name);
 }
 
-/* Fills a vector with the names of properties for the current node */
+/* Fills a vector with the property names of the current node */
 void Node::propertyNames(std::vector<std::string> &names, Document &doc)
 {
     names.clear();
@@ -284,7 +299,7 @@ void Node::propertyNames(std::vector<std::string> &names, Document &doc)
     }
 }
 
-/* Fills a vector with the values of properties for the current node */
+/* Fills a vector with the property valuse of the current node*/
 void Node::propertyValues(std::vector<std::string> &values, Document &doc)
 {
     values.clear();

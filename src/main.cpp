@@ -7,43 +7,41 @@
 class Application
 {
 private:
-    /* instance of Configuration class */
     Configuration configuration;
 
-    /* Object of socket*/
     Socket *socket = nullptr;
 
-    /* Object of xmlParser */
     XmlParser xmlParser;
 
-    /* Object of DatabaseManager */
     DatabaseManager *databaseManager = nullptr;
 
-    /* Thread of server */
     std::thread serverThread;
 
-    /* Thread of input*/
+    /* Thread to handle server stopping on user input.*/
     std::thread stopServerThread;
 
 public:
-    /* Run program */
+    /* Runs a application , managing configuraion , socket creation , and input handling.*/
     void run(int argc, char *argv[])
     {
-        /* Configuration program */
+        /* Configuration program.*/
         configuration.config(argc, argv);
 
-        /* Create socket */
+        /* Initialize and start the socket server.*/
         server();
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
         if (socket->isRunning()) {
             std::cout << "Server started. Press Enter to stop...\n\n";
 
+            /*Start the thread that waits for user input to stop the server.*/
             stopServerThread = std::thread([this]() {
+                /*Wait for user input*/
                 std::cin.get();
                 socket->stop();
             });
 
+            /*Process incoming client data */
             processAndStoreClientData();
 
         } else
@@ -51,8 +49,7 @@ public:
             std::cout << "Server failed to start. Check logs for "
                          "errors.\n";
     }
-
-    /* Destructor */
+    /* Destructor cleans up resources and stops the server if running */
     ~Application()
     {
         if (socket->isRunning())
@@ -71,14 +68,14 @@ public:
     }
 
 private:
-    /* Create socket */
+    /* Initializes the socket and starts the server in a separate thread */
     void server()
     {
         socket = new Socket(configuration.getServerConfig());
         serverThread = std::thread(&Socket::createSocket, socket);
     }
 
-    /* Process client's data  */
+    /* Processes incoming client data and stores it in the database */
     void processAndStoreClientData()
     {
         databaseManager = new DatabaseManager(configuration.getDatabaseConfig());
@@ -87,20 +84,25 @@ private:
         {
             std::unique_lock<std::mutex> lock(socket->getMutex());
 
+            /*Wait for data from clients or server stop signal.*/
             socket->getCV().wait(lock, [this] {
                 return ! socket->getWaitingClients().empty() || ! socket->isRunning();
             });
 
+            // Break if server is stopped and no more waiting clients
             if (! socket->isRunning() && socket->getWaitingClients().empty())
                 break;
 
+            // Get client from waiting queue and pop it
             Client *client = socket->getWaitingClients().front();
             socket->getWaitingClients().pop();
 
+            /*Start a thread to process the XML data from the client.*/
             std::thread parseThread(&XmlParser::parseAndStoreXmlData, &xmlParser, client,
                                     databaseManager);
 
             parseThread.detach();
+            /*Store the parsing thread in clien*/
             client->setParseThread(std::move(parseThread));
         }
     }
