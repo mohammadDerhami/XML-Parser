@@ -1,7 +1,7 @@
 /**
  * \ Author : Mohammad Derhami
  *
- * file : parse xml
+ * file : parse.h
  *
  */
 
@@ -16,8 +16,12 @@
 #include <stack>
 #include <vector>
 
-class Document;
+using namespace Sqlite;
 
+namespace XML
+{
+
+class Document;
 /*
  * Class Node
  * @brief:
@@ -28,6 +32,7 @@ class Document;
  * 4.Property node : A node that is not a object node.
  *
  */
+
 class Node
 {
 public:
@@ -219,12 +224,12 @@ private:
 };
 
 /*
- * Class XmlParser
+ * Class Parse
  *
  * parse XML and pass information to database.
  *
  */
-class XmlParser
+class Parse
 {
 public:
     /*
@@ -277,6 +282,7 @@ private:
      */
     void handleException(Client *client, const std::exception &e);
 };
+
 /*
  * Class ParseXmlException
  * Inheritance from runtime_error class
@@ -291,3 +297,9 @@ public:
     }
 };
 
+} /* namespace XML */
+
+namespace JSON
+{
+
+}

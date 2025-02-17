@@ -70,7 +70,7 @@ add_executable(dbm
     src/main.cpp
     src/server.cpp
     src/config.cpp
-    src/parseXml.cpp
+    src/data_parser.cpp
     src/database.cpp
 )
 

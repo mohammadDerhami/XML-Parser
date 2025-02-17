@@ -1,12 +1,16 @@
-#include "../include/parseXml.h"
+#include "../include/data_parser.h"
+
+namespace XML
+{
+
 /**
  *
- * Implementation for "XmlParser" Class
+ * Implementation for "Parse" Class
  *
  */
 
 /*Process xml data received from a client and stores it in the database */
-void XmlParser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
+void Parse::parseAndStoreXmlData(Client *client, DatabaseManager *database)
 {
     try {
         std::string xmlData = client->getXmlData();
@@ -31,7 +35,7 @@ void XmlParser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
 }
 
 /*Handles exceptions that occur during XML parsing or database operation*/
-void XmlParser::handleException(Client *client, const std::exception &e)
+void Parse::handleException(Client *client, const std::exception &e)
 {
     std::string message = "Error : " + std::string(e.what());
     client->setResult(message);
@@ -42,7 +46,7 @@ void XmlParser::handleException(Client *client, const std::exception &e)
  *Traverses the XML document's nodes and stores them in the database.
  *Utilizes stack for backtracking through child nodes.
  */
-void XmlParser::storeXmlNodesInDatabase(Document &doc, DatabaseManager *database)
+void Parse::storeXmlNodesInDatabase(Document &doc, DatabaseManager *database)
 {
     /* Vector to store the names of each property of the node */
     std::vector<std::string> names;
@@ -86,16 +90,16 @@ void XmlParser::storeXmlNodesInDatabase(Document &doc, DatabaseManager *database
 }
 
 /* Inserts data into the specified table in the database*/
-void XmlParser::insertIntoDatabase(DatabaseManager *database, const std::string &uuid,
-                                   std::vector<std::string> &names,
-                                   std::vector<std::string> &values, Node *node)
+void Parse::insertIntoDatabase(DatabaseManager *database, const std::string &uuid,
+                               std::vector<std::string> &names, std::vector<std::string> &values,
+                               Node *node)
 {
     database->insertIntoTable(uuid, names, values, node->getName());
 }
 
 /* Create a new table in the database based on node properties */
-void XmlParser::createTableIntoDatabase(DatabaseManager *database, const std::string &mainTable,
-                                        Node *node, std::vector<std::string> &names)
+void Parse::createTableIntoDatabase(DatabaseManager *database, const std::string &mainTable,
+                                    Node *node, std::vector<std::string> &names)
 {
     bool isMainTable = (mainTable == node->getName());
     database->createTable(node->getName(), names, isMainTable, mainTable);
@@ -310,4 +314,10 @@ void Node::propertyValues(std::vector<std::string> &values, Document &doc)
             values.push_back(child->getContent());
         }
     }
+}
+} /*namespace XML*/
+
+namespace JSON
+{
+
 }

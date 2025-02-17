@@ -1,4 +1,7 @@
 #include "../include/database.h"
+
+namespace Sqlite
+{
 /**
  *
  * Implementation for "Database" class
@@ -234,3 +237,4 @@ std::string DatabaseManager::fetchAllTablesAsXML()
     return xmlStream.str();
 }
 
+} /* namespace Sqlite */

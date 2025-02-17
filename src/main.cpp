@@ -1,9 +1,10 @@
 #include "../include/config.h"
 #include "../include/database.h"
-#include "../include/parseXml.h"
+#include "../include/data_parser.h"
 #include "../include/server.h"
 
 #include <iostream>
+
 class Application
 {
 private:
@@ -11,9 +12,9 @@ private:
 
     Socket *socket = nullptr;
 
-    XmlParser xmlParser;
+    XML::Parse xmlParser;
 
-    DatabaseManager *databaseManager = nullptr;
+    Sqlite::DatabaseManager *databaseManager = nullptr;
 
     std::thread serverThread;
 
@@ -98,7 +99,7 @@ private:
             socket->getWaitingClients().pop();
 
             /*Start a thread to process the XML data from the client.*/
-            std::thread parseThread(&XmlParser::parseAndStoreXmlData, &xmlParser, client,
+            std::thread parseThread(&XML::Parse::parseAndStoreXmlData, &xmlParser, client,
                                     databaseManager);
 
             parseThread.detach();

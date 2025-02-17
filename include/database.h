@@ -17,6 +17,8 @@
 #include <sqlite3.h>
 #include <sstream>
 #include <vector>
+namespace Sqlite
+{
 /**
  * DatabaseManager Class
  */
@@ -164,5 +166,6 @@ public:
     {
     }
 };
+} /* namespace Sqlite */
 
 #endif
