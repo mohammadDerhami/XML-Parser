@@ -13,8 +13,9 @@
 
 #include <fstream>
 #include <iostream>
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
+//#include <rapidjson/document.h>
+//#include <rapidjson/istreamwrapper.h>
+#include "nlohmann/json.hpp"
 #include <unistd.h>
 /**
  * @class ServerConfiguration

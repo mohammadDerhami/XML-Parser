@@ -76,44 +76,42 @@ std::string Configuration::commandLineArgs(int argc, char *argv[])
     return filePath;
 }
 
-/* Parses the json configuration file and sets the corresponding setting in the application.*/
+/*Opens the specified configurtion file , parse json and initializes the server and database.*/
 void Configuration::configurationProgram(const std::string &configFilePath)
 {
     /* open file */
     std::ifstream configFile(configFilePath);
     if (! configFile.is_open()) {
-        throw std::runtime_error("Unable to open file : " + std::string(configFilePath) + "\n");
+        throw std::runtime_error("Unable to open file: " + configFilePath + "\n");
     }
-    /*Create an IStreamWrapper to read from the input file stream */
-    rapidjson::IStreamWrapper isw(configFile);
-    rapidjson::Document document;
 
-    /* parse the JSON data from the input stream */
-    document.ParseStream(isw);
+    /* Create a JSON object from the input file */
+    nlohmann::json jsonDocument;
+    configFile >> jsonDocument; // Parse the JSON data from the input stream
 
     /* close file */
     configFile.close();
 
-    /* parse servive object */
-    if (document.HasMember("servive") && document["servive"].IsObject()) {
-        const rapidjson::Value &service = document["servive"];
+    /* parse service object */
+    if (jsonDocument.contains("servive") && jsonDocument["servive"].is_object()) {
+        const auto &service = jsonDocument["servive"];
 
-        if (service.HasMember("ip") && service["ip"].IsString()) {
-            serverConfig.setIp(service["ip"].GetString());
+        if (service.contains("ip") && service["ip"].is_string()) {
+            serverConfig.setIp(service["ip"].get<std::string>());
         }
-        if (service.HasMember("port") && service["port"].IsInt()) {
-            serverConfig.setPort(service["port"].GetInt());
+        if (service.contains("port") && service["port"].is_number_integer()) {
+            serverConfig.setPort(service["port"].get<int>());
         }
-        if (service.HasMember("maxConnection") && service["maxConnection"].IsInt()) {
-            serverConfig.setMaxConnection(service["maxConnection"].GetInt());
+        if (service.contains("maxConnection") && service["maxConnection"].is_number_integer()) {
+            serverConfig.setMaxConnection(service["maxConnection"].get<int>());
         }
     }
 
     /* parse database object */
-    if (document.HasMember("database") && document["database"].IsObject()) {
-        const rapidjson::Value &database = document["database"];
-        if (database.HasMember("path") && database["path"].IsString()) {
-            databaseConfig.setFilePath(database["path"].GetString());
+    if (jsonDocument.contains("database") && jsonDocument["database"].is_object()) {
+        const auto &database = jsonDocument["database"];
+        if (database.contains("path") && database["path"].is_string()) {
+            databaseConfig.setFilePath(database["path"].get<std::string>());
         }
     }
 

@@ -20,31 +20,21 @@ option(FETCH_MISSING_DEPS "Automatically fetch missing dependencies" ON)
 include(FetchContent)
 include(ExternalProject)
 
-set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "Disable examples")
-set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL "Disable tests")
-set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL "Disable docs")
-
-find_package(RapidJSON QUIET)
-if (NOT RapidJSON_FOUND)
+find_package(nlohmann_json QUIET)
+if (NOT nlohmann_json_FOUND)
     if (FETCH_MISSING_DEPS)
-        message(STATUS "Fetching RapidJSON from GitHub...")
+        message(STATUS "Fetching nlohmann/json from GitHub...")
         FetchContent_Declare(
-            rapidjson
-            GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
-            GIT_TAG v1.1.0
-            CMAKE_ARGS
-                -DRAPIDJSON_BUILD_EXAMPLES=OFF
-                -DRAPIDJSON_BUILD_TESTS=OFF
-                -DRAPIDJSON_BUILD_DOC=OFF
+            nlohmann_json
+            GIT_REPOSITORY https://github.com/nlohmann/json.git
+            GIT_TAG v3.10.5  # Replace with the desired version if needed
         )
-        FetchContent_MakeAvailable(rapidjson)
-        set(RAPIDJSON_INCLUDE_DIR ${rapidjson_SOURCE_DIR}/include) 
+        FetchContent_MakeAvailable(nlohmann_json)
     else()
-        message(FATAL_ERROR "RapidJSON not found and FETCH_MISSING_DEPS is disabled")
+        message(FATAL_ERROR "nlohmann/json not found and FETCH_MISSING_DEPS is disabled")
     endif()
-else()
-    set(RAPIDJSON_INCLUDE_DIR ${RapidJSON_INCLUDE_DIRS})
 endif()
+
 
 find_package(LibXml2 REQUIRED HINTS ${OTHER_LIBXML2_DIRS})
 if (NOT LibXml2_FOUND)
@@ -81,6 +71,7 @@ target_include_directories(dbm PRIVATE
 )
 
 target_link_libraries(dbm PRIVATE
+    nlohmann_json::nlohmann_json
     sqlite3
     pthread
     ${LIBXML2_LIBRARIES}
