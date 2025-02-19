@@ -1,4 +1,4 @@
-#include "../include/database.h"
+#include "database.h"
 
 namespace Sqlite
 {
@@ -29,6 +29,7 @@ void DatabaseManager::closeDatabase()
 /* Checks if a table with the given name exists	in the database.*/
 bool DatabaseManager::isExistTable(const std::string &name)
 {
+    std::lock_guard<std::mutex> lock(dbMutex);
     std::string query = queryIsExistTable(name);
 
     bool exist = false;
@@ -64,6 +65,7 @@ void DatabaseManager::createTable(const std::string &name,
                                   const std::vector<std::string> &properties, bool isMainTable,
                                   const std::string &mainTable)
 {
+    std::lock_guard<std::mutex> lock(dbMutex);
     std::string query = queryCreateTable(name, properties, isMainTable, mainTable);
 
     char *errMsg = nullptr;

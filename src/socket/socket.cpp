@@ -1,4 +1,4 @@
-#include "server.h"
+#include "socket.h"
 
 /**
  * Implementation the "Socket" class
@@ -91,7 +91,7 @@ void Socket::handleClient(Client *client)
             continue;
         }
 
-        client->setXmlData(buffer);
+        client->setInputData(buffer);
 
         pushToQueue(client);
 
@@ -281,7 +281,7 @@ sockaddr_in Socket::setup()
 void Socket::printClientData(Client *client)
 {
     coutMtx.lock();
-    std::cout << "received from " << client->getId() << "\n" << client->getXmlData() << std::endl;
+    std::cout << "received from " << client->getId() << "\n" << client->getInputData() << std::endl;
     coutMtx.unlock();
 }
 
@@ -306,22 +306,3 @@ void Socket::closeClient(Client *client)
     client->setClientSocket(-1);
     printClientClose(client);
 }
-
-/**
- *
- * Implementation for "Client" class
- *
- */
-
-/*Resets the client status for reuse by clearing results and data flags.*/
-void Client::reset()
-{
-    std::lock_guard<std::mutex> lock(clientMtx);
-
-    resultReady = false;
-    result.clear();
-
-    dataReady = false;
-    xmlData.clear();
-}
-

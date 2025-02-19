@@ -55,20 +55,24 @@ if (NOT SQLite3_FOUND AND FETCH_MISSING_DEPS)
     add_library(sqlite3 STATIC ${sqlite3_src_SOURCE_DIR}/sqlite3.c)
     target_include_directories(sqlite3 PUBLIC ${sqlite3_src_SOURCE_DIR})
 endif()
-
 add_executable(dbm
     src/main.cpp
-    src/server.cpp
-    src/config.cpp
-    src/data_parser.cpp
-    src/database.cpp
+    src/socket/socket.cpp
+    src/socket/client.cpp
+    src/config/config.cpp
+    src/parser/parser.cpp
+    src/parser/tree.cpp
+    src/database/database.cpp
 )
-
 target_include_directories(dbm PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${RAPIDJSON_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/config
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/parser
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/database
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/socket
     ${LIBXML2_INCLUDE_DIRS}
 )
+
 
 target_link_libraries(dbm PRIVATE
     nlohmann_json::nlohmann_json
@@ -88,5 +92,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wno-error=class-memaccess
     )
 endif()
+
+
 
 

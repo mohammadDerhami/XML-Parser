@@ -7,7 +7,7 @@
  * \author : MohammadDerhami
  */
 
-#include "../include/config.h"
+#include "config.h"
 
 /**
  *

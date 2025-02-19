@@ -53,7 +53,11 @@ Installation of `XML Parser` is based on build system.
 
 	```bash
 	#Run the project
-	$ ./dbm -f <config file path> : use the specified configuration file.
+	$ ./dbm -f <config file path> : use the specified configuration file(../src/config.json).
 	$ ./dbm -h : display help message.
 	$ ./dbm -v : display the current version of the application.
 	```
+6. Connecting with client:
+
+	```bash
+	telnet <ip><port> -> default: telnet localhost 8080

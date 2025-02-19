@@ -1,7 +1,6 @@
-#include "../include/config.h"
-#include "../include/database.h"
-#include "../include/data_parser.h"
-#include "../include/server.h"
+#include "database.h"
+#include "parser.h"
+#include "socket.h"
 
 #include <iostream>
 
@@ -10,11 +9,11 @@ class Application
 private:
     Configuration configuration;
 
-    Socket *socket = nullptr;
+    Socket *socket;
 
-    XML::Parse xmlParser;
+    XML::Parser *xmlParser;
 
-    Sqlite::DatabaseManager *databaseManager = nullptr;
+    Sqlite::DatabaseManager *databaseManager;
 
     std::thread serverThread;
 
@@ -50,6 +49,9 @@ public:
             std::cout << "Server failed to start. Check logs for "
                          "errors.\n";
     }
+    Application() : socket(nullptr), databaseManager(nullptr), xmlParser(nullptr)
+    {
+    }
     /* Destructor cleans up resources and stops the server if running */
     ~Application()
     {
@@ -64,6 +66,8 @@ public:
 
         if (socket)
             delete socket;
+        if (xmlParser)
+            delete xmlParser;
         if (databaseManager)
             delete databaseManager;
     }
@@ -79,6 +83,7 @@ private:
     /* Processes incoming client data and stores it in the database */
     void processAndStoreClientData()
     {
+        xmlParser = new XML::Parser();
         databaseManager = new DatabaseManager(configuration.getDatabaseConfig());
         while (true)
 
@@ -99,7 +104,7 @@ private:
             socket->getWaitingClients().pop();
 
             /*Start a thread to process the XML data from the client.*/
-            std::thread parseThread(&XML::Parse::parseAndStoreXmlData, &xmlParser, client,
+            std::thread parseThread(&XML::Parser::parseAndStoreXmlData, xmlParser, client,
                                     databaseManager);
 
             parseThread.detach();
