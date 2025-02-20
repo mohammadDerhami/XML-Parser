@@ -106,10 +106,8 @@ std::vector<std::string> Node::collectPropertyValues()
 void Tree::initialize()
 {
     xmlDoc = xmlReadMemory(xmlData.c_str(), xmlData.length(), nullptr, nullptr, 0);
-    if (xmlDoc == nullptr) {
-        throw ParseXmlException("Error parsing XML data: Failed to parse XML "
-                                "document!!!\n");
-    }
+    if (xmlDoc == nullptr)
+        throw ParseXmlException("Failed to parse XML document!!!\n");
 
     root = buildTree(xmlDocGetRootElement(xmlDoc));
 
@@ -237,8 +235,10 @@ Node *Tree::findNode(Node *node, const std::string &name)
 void Tree::freeTree()
 {
     for (Node *node : allNodes) {
-        if (node)
+        if (node) {
             delete node;
+            node = nullptr;
+        }
     }
     allNodes.clear();
 }

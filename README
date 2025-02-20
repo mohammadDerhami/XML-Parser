@@ -1,58 +1,35 @@
-#Project Title
-**XML Parser**
-
-## Description
-This project is a socket server application that process XML data received from clients and stores it in a database.
-
-## Features
-- Read the first 15 bytes as the size of incoming data.
-- Processes the received XML data.
-- Stores data in a database.
-- Allows retrieval of data in XML format from the database.
-- Supports multi-client communication, enabling reception of data multiple times.
-
-## Requirements
-- **libxml2**: for XML processing.
-- **rapidjson**: library for JSON processing.
-
-## Installation
-
- Follow these steps to install and run the project:
-
-1.**Clone this repository**:
-
-clone the project repository from GitHub to your local machine.
-git clone<https://github.com/mohammadDerhami/XML-Parser.git>
+XML_Parser:
 
 
+Here is the description of the program:
 
-2.**Navigate to the project directory**: 
-
-change your current working directory to the project folder.
-
+1.Program Configuration:
 
 
-3.**Create a build directory**:
-
-mkdir build
-cd build
+2.Socket Creation in a Thread:
+-A socket is created in a separate thread to handle client connections and data reception.
 
 
-
-4.**Run cmake to configure the project**:
-
-cmake ..
+3.Waiting for User Input (Enter Key) in Another Thread:
+-In another thread, the program waits for the user to press the Enter key. Once the Enter key is pressed, the socket is closed.
 
 
-
-5.**Compile the project**:
-
-make
+4.Main waits for a Client Connection:
+-In the main function, the program waits for a client to connect and send data.
 
 
+5.Client Connects and Sends Data:
+-A client connects to the server.
+-The client sends its data.
+-Once the data is received, a notification is sent to main.
 
-6.**Run the project**:
 
-./dbm -f <config file path> : use the specified configuration file.
-./dbm -h : display help message.
-./dbm -v : display the current version of the application.
+6.Data Parsing and Database Storage:
+-main sends the received data to the parse method.
+-The data is parsed and stored in the database.
+-After the data is successfully stored, a notification is sent to the handleClient method to send the result back to the client.
+
+
+7.Client Receives Result and Continues:
+-The client receives the result from the server.
+-The client can then press the 'y' key to continue or perform further actions.

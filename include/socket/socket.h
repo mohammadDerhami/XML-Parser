@@ -174,8 +174,10 @@ public:
     /*Destructor*/
     ~Socket()
     {
-        for (Client *client : clients)
+        for (Client *client : clients) {
             delete client;
+            client = nullptr;
+        }
 
         clients.clear();
     }

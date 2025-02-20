@@ -37,11 +37,15 @@ std::string Configuration::commandLineArgs(int argc, char *argv[])
 
     bool configFileProvided = false;
 
-    while ((opt = getopt(argc, argv, ":f:vh")) != -1) {
+    while ((opt = getopt(argc, argv, ":f:vho")) != -1) {
         switch (opt) {
         /* -h -> print help */
         case 'h':
             printHelp();
+            break;
+        /* -o -> print implimantation steps*/
+        case 'o':
+            displayProgramSteps();
             break;
         /* -v -> print version */
         case 'v':
@@ -123,12 +127,34 @@ void Configuration::configurationProgram(const std::string &configFilePath)
 void Configuration::printHelp()
 {
     std::cout << "Usage:\n"
-                 "  ./dbm -f <config file path>            : Use the "
-                 "specified configuration file.\n"
+                 "  ./dbm -f <config file path>             : Use the "
+                 "specified configuration file. by default -> ../src/config.json\n"
                  "  ./dbm -h                                : Display this "
                  "help message.\n"
                  "  ./dbm -v                                : Display the "
-                 "current version of the application.\n";
+                 "current version of the application.\n"
+                 "  ./dbm -o                                : Display the "
+                 "how to implement.\n"
+                 "\n\nAfter running the program , to connect to the socket : \n\n"
+                 "telnet <ip><port> -> by defualt : telnet localhost 8080\n\n\n"
+                 "To insert into the database : Enter XML data \n\n"
+                 "To Select(view) the data in the database in XML format, Enter :\n\n"
+                 "49 bytes\n"
+                 "<request>\n"
+                 "<operation type=\"select\"/>\n"
+                 "</request>\n";
+}
+/*Prints the implementation steps of application*/
+void Configuration::displayProgramSteps()
+{
+    std::cout << "1.Program Configuration\n"
+                 "2.Socket Creation in a Thread\n"
+                 "3.Waiting for User Input (Enter Key) in Another Thread\n"
+                 "4.Main Waits for a Client Connection\n"
+                 "5.Client Connects and Sends Data\n"
+                 "6.Data Parsing and Database Storage\n"
+                 "7.Client Receives Result and Continues\n"
+                 "For more details, please refer to the README file.\n";
 }
 
 /*Prints the current version of the application */

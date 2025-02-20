@@ -66,7 +66,7 @@ void DatabaseManager::createTable(const std::string &name,
                                   const std::string &mainTable)
 {
     std::lock_guard<std::mutex> lock(dbMutex);
-    std::string query = queryCreateTable(name, properties, isMainTable, mainTable);
+    std::string query = queryCreate(name, properties, isMainTable, mainTable);
 
     char *errMsg = nullptr;
 
@@ -79,9 +79,9 @@ void DatabaseManager::createTable(const std::string &name,
 }
 
 /* Creates a SQL query string to create a new table.*/
-std::string DatabaseManager::queryCreateTable(const std::string &name,
-                                              const std::vector<std::string> &properties,
-                                              bool isMainTable, const std::string &mainTable)
+std::string DatabaseManager::queryCreate(const std::string &name,
+                                         const std::vector<std::string> &properties,
+                                         bool isMainTable, const std::string &mainTable)
 {
     std::string query = "CREATE TABLE IF NOT EXISTS " + name + " (";
 
@@ -116,7 +116,7 @@ void DatabaseManager::insertIntoTable(const std::string &uuid,
 {
     std::lock_guard<std::mutex> lock(dbMutex);
 
-    std::string query = queryInsertIntoTable(names, tableName);
+    std::string query = queryInsert(names, tableName);
 
     sqlite3_stmt *stmt;
     if (sqlite3_prepare_v2(database, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -141,8 +141,8 @@ void DatabaseManager::insertIntoTable(const std::string &uuid,
 }
 
 /* Creates a SQL query string to insert values into the specified table.*/
-std::string DatabaseManager::queryInsertIntoTable(const std::vector<std::string> &names,
-                                                  const std::string &tableName)
+std::string DatabaseManager::queryInsert(const std::vector<std::string> &names,
+                                         const std::string &tableName)
 {
     std::string query = "INSERT INTO " + tableName + " (uuid";
     for (const std::string name : names) {
@@ -162,11 +162,11 @@ std::vector<std::string> DatabaseManager::getAllTableNames()
 {
     std::vector<std::string> tableNames;
 
-    const char *query = "SELECT name FROM sqlite_master WHERE type='table';";
+    std::string query = queryAllTableNames();
 
     sqlite3_stmt *stmt;
 
-    if (sqlite3_prepare_v2(database, query, -1, &stmt, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(database, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         std::string message = "Error fetching table names: " +
                               std::string(sqlite3_errmsg(database));
         throw DatabaseException(message);
@@ -183,6 +183,13 @@ std::vector<std::string> DatabaseManager::getAllTableNames()
     return tableNames;
 }
 
+/* Creates a SQL query string to get all table names.*/
+std::string DatabaseManager::queryAllTableNames()
+{
+    std::string query = "SELECT name FROM sqlite_master WHERE type='table';";
+    return query;
+}
+
 /* Fetches data from the specified table and returns it as an XML string.*/
 std::string DatabaseManager::fetchTableDataAsXML(const std::string &tableName)
 {
@@ -191,7 +198,7 @@ std::string DatabaseManager::fetchTableDataAsXML(const std::string &tableName)
 
     xmlStream << "<" << tableName << ">\n";
 
-    std::string query = "SELECT * FROM " + tableName + ";";
+    std::string query = querySelect(tableName);
 
     sqlite3_stmt *stmt;
 
@@ -221,6 +228,13 @@ std::string DatabaseManager::fetchTableDataAsXML(const std::string &tableName)
     xmlStream << "</" << tableName << ">\n";
 
     return xmlStream.str();
+}
+
+/* Creates a SQL query string to SELECT table*/
+std::string DatabaseManager::querySelect(const std::string &tableName)
+{
+    std::string query = "SELECT * FROM " + tableName + ";";
+    return query;
 }
 
 /* Fetches data from all tables in the database and returns it as an XML string.*/

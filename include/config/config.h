@@ -97,6 +97,11 @@ private:
      */
     void printHelp();
 
+    /*
+     * @brief print steps of implementation of program
+     */
+    void displayProgramSteps();
+
     /**
      * @brief print version of program.
      */

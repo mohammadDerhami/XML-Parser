@@ -126,9 +126,8 @@ private:
      * whether this table is main table , name of main table.
      * @return query
      */
-    std::string queryCreateTable(const std::string &name,
-                                 const std::vector<std::string> &properties, bool isMainTable,
-                                 const std::string &mainTable);
+    std::string queryCreate(const std::string &name, const std::vector<std::string> &properties,
+                            bool isMainTable, const std::string &mainTable);
 
     /*
      * @brief Create query for insert into table.
@@ -136,13 +135,18 @@ private:
      * name of table.
      * @return query
      */
-    std::string queryInsertIntoTable(const std::vector<std::string> &names,
-                                     const std::string &tableName);
+    std::string queryInsert(const std::vector<std::string> &names, const std::string &tableName);
     /*
      * @brief store name of tables in the vector.
      * @return vector of names.
      */
     std::vector<std::string> getAllTableNames();
+
+    /*
+     * @brief Create query for get all table names.
+     * @return query
+     */
+    std::string queryAllTableNames();
 
     /*
      * @brief Fetch data of table as xml
@@ -153,6 +157,14 @@ private:
      * -table is empty
      */
     std::string fetchTableDataAsXML(const std::string &tableName);
+
+    /*
+     * @brief Create query for SELECT table.
+     * @param name of table.
+     * @return query
+     */
+
+    std::string querySelect(const std::string &tableName);
 };
 /**
  * DatabaseException Class

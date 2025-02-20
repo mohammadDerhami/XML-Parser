@@ -64,12 +64,14 @@ public:
         if (stopServerThread.joinable())
             stopServerThread.join();
 
-        if (socket)
-            delete socket;
-        if (xmlParser)
-            delete xmlParser;
-        if (databaseManager)
-            delete databaseManager;
+        delete socket;
+        socket = nullptr;
+
+        delete xmlParser;
+        xmlParser = nullptr;
+
+        delete databaseManager;
+        databaseManager = nullptr;
     }
 
 private:

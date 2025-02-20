@@ -24,8 +24,10 @@ void Parser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
 
         if (tree->getIsSelectType()) {
             client->setResult(database->fetchAllTablesAsXML());
-            if (tree)
-                delete tree;
+
+            delete tree;
+            tree = nullptr;
+
             client->getCV().notify_one();
         } else {
             Node *root = tree->getRoot();
@@ -36,8 +38,10 @@ void Parser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
             storeXmlNodesInDatabase(tree, root, uuid, mainTable, database);
 
             client->setResult("done :) \n");
-            if (tree)
-                delete tree;
+
+            delete tree;
+            tree = nullptr;
+
             client->getCV().notify_one();
         }
 
@@ -53,8 +57,10 @@ void Parser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
 /*Handles exceptions that occur during XML parsing or database operation*/
 void Parser::handleException(Client *client, const std::exception &e, Tree *tree)
 {
-    if (tree)
+    if (tree) {
         delete tree;
+        tree = nullptr;
+    }
     std::string message = "Error : " + std::string(e.what());
     client->setResult(message);
     client->getCV().notify_one();
