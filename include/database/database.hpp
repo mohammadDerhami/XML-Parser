@@ -1,5 +1,5 @@
 /**
- * \file : database.h
+ * \file : database.hpp
  *
  *
  * \author : MohammadDerhami
@@ -9,7 +9,7 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include "config.h"
+#include "config.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -25,25 +25,16 @@ namespace Sqlite
 class DatabaseManager
 {
 public:
-    /*Constructor*/
-    DatabaseManager(const DatabaseConfiguration &databaseConfiguration)
+    /*
+     * @brief Construct a new DatabaseManager object.
+     * @param DatabaseConfiguration object.
+     */
+    DatabaseManager(const DatabaseConfiguration &databaseConfiguration);
 
-    {
-        fileName = databaseConfiguration.getFilePath();
-        openDatabase();
-    }
-
-    /*Destructor*/
-    ~DatabaseManager()
-    {
-        closeDatabase();
-    }
-
-    /*Getter for database*/
-    sqlite3 *getDatabase() const
-    {
-        return database;
-    }
+    /*
+     * @brief Destruct a DatabaseManager object.
+     */
+    ~DatabaseManager();
 
     /*
      * @brief Checks whether a table with this name exists or not.
@@ -90,6 +81,9 @@ public:
      * @return string of xml data
      */
     std::string fetchAllTablesAsXML();
+    
+    /*Getters*/
+    sqlite3 *getDatabase() const;
 
 private:
     /*Mutex*/

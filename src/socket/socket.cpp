@@ -1,8 +1,29 @@
-#include "socket.h"
+#include "socket.hpp"
 
 /**
  * Implementation the "Socket" class
  */
+
+Socket::Socket(ServerConfiguration &serverConfig) :
+    sockfd {-1},
+    isBound {false},
+    isListening {false},
+    clientsNum {0},
+    ip {serverConfig.getIp()},
+    port {serverConfig.getPort()},
+    maxConnection {serverConfig.getMaxConnection()}
+{
+}
+
+Socket::~Socket()
+{
+    for (Client *client : clients) {
+        delete client;
+        client = nullptr;
+    }
+
+    clients.clear();
+}
 
 /*
  * Creates a TCP socket , binds it to the specified address ,and starts listening for incominng
@@ -30,7 +51,7 @@ void Socket::createSocket()
 
     } catch (const SocketException &se) {
         std::cerr << "Error : " << se.what();
-        if (isRunning())
+        if (isOpen())
             stop();
     }
 }
@@ -50,7 +71,7 @@ void Socket::acceptClient(sockaddr_in address, int addressLen)
 
         clientsNum++;
 
-        Client *client = new Client(newClientSocket, clientsNum);
+        Client *client = new Client{newClientSocket, clientsNum};
 
         std::thread clientThread(&Socket::handleClient, this, client);
 
@@ -70,7 +91,7 @@ void Socket::handleClient(Client *client)
     int clientSocket = client->getClientSocket();
     printClientJoin(client);
 
-    while (isRunning()) {
+    while (isOpen()) {
         std::string lengthMsg = "\nEnter the data length as 15 digits : \n";
         write(clientSocket, lengthMsg.c_str(), lengthMsg.length());
 
@@ -240,7 +261,7 @@ void Socket::stop()
 }
 
 /* Checks if the socket is currently running(bound and listening)*/
-bool Socket::isRunning()
+bool Socket::isOpen()
 {
     return isBound && isListening && sockfd > 0;
 }
@@ -256,7 +277,7 @@ void Socket::bindSocket(sockaddr_in address, int addressLen)
 /* Sets up the server socket to listen for incoming client connections.*/
 void Socket::listenForClients()
 {
-    if (listen(sockfd, serverConfig.getMaxConnection()) < 0) {
+    if (listen(sockfd, maxConnection) < 0) {
         throw SocketException("Listen failed!!!\n");
     }
 }
@@ -306,3 +327,25 @@ void Socket::closeClient(Client *client)
     client->setClientSocket(-1);
     printClientClose(client);
 }
+
+int Socket::getSockfd() const
+{
+    return sockfd;
+}
+const std::vector<Client *> &Socket::getClients()
+{
+    return clients;
+}
+std::queue<Client *> &Socket::getWaitingClients()
+{
+    return waitingClients;
+}
+std::mutex &Socket::getMutex()
+{
+    return socketMtx;
+}
+std::condition_variable &Socket::getCV()
+{
+    return cv;
+}
+

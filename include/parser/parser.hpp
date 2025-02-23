@@ -1,13 +1,13 @@
 /**
  * \ Author : Mohammad Derhami
  *
- * file : parser.h
+ * file : parser.hpp
  *
  */
 
-#include "client.h"
-#include "database.h"
-#include "tree.h"
+#include "client.hpp"
+#include "database.hpp"
+#include "tree.hpp"
 
 using namespace Sqlite;
 namespace XML

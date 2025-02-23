@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "parser.hpp"
 
 namespace XML
 {
@@ -20,7 +20,7 @@ void Parser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
     Tree *tree;
     try {
         std::string xmlData = client->getInputData();
-        tree = new Tree(xmlData);
+        tree = new Tree{xmlData};
 
         if (tree->getIsSelectType()) {
             client->setResult(database->fetchAllTablesAsXML());

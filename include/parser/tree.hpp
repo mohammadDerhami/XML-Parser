@@ -1,6 +1,6 @@
 /**
  *
- * \file : tree.h
+ * \file : tree.hpp
  *
  * \author : MohammadDerhami
  *
@@ -24,7 +24,6 @@ namespace XML
 
 /*
  * Class Node
- * @brief:
  * Type of nodes :
  * 1.Element node : defined in xmlNode structure.
  * 2.Text node : defined in xmlNode structure.
@@ -35,17 +34,12 @@ namespace XML
 
 class Node
 {
-private:
-    xmlNodePtr xmlNode;
-    Node *parent;
-    std::vector<Node *> children;
-    Node *next;
-
 public:
-    /*Constructor*/
-    Node(xmlNodePtr node) : xmlNode(node), parent(nullptr), next(nullptr)
-    {
-    }
+    /*
+     * @brief Construct a new Node object.
+     * @param object of XmlNodePtr
+     */
+    Node(xmlNodePtr node);
 
     /*@brief  Checks if the current node is an object node(has child element)*/
     bool isObjectNode();
@@ -59,11 +53,13 @@ public:
     /*@brief  Checks if the current node has any property nodes*/
     bool hasPropertyNode();
 
-    /* @brief Return name of node.*/
+    /* @brief Returns name of node.*/
     std::string getName();
 
-    /* @brief Return content of node*/
+    /* @brief Returns content of node*/
     std::string getContent();
+    /*@brief Return first child */
+    Node *getChild() const;
 
     /*
      * @brief Converts xmlChar to string
@@ -86,49 +82,52 @@ public:
      */
     std::vector<std::string> collectPropertyValues();
 
-    /*Setter and Getter for next node*/
-    void setNext(Node *next)
-    {
-        this->next = next;
-    }
-    Node *getNext() const
-    {
-        return next;
-    }
+    /*Setters*/
+    void setNext(Node *next);
+    std::vector<Node *> &getChildren();
+    void setParent(Node *parent);
 
-    /*Setter and Getter for parent node */
-    void setParent(Node *parent)
-    {
-        this->parent = parent;
-    }
-    Node *getParent() const
-    {
-        return parent;
-    }
-    /* Return first child */
-    Node *getChild() const
-    {
-        if (! children.empty())
-            return children.front();
-        else
-            return nullptr;
-    }
+    /*Getters*/
+    xmlNodePtr getXmlNode() const;
+    Node *getNext() const;
+    Node *getParent() const;
 
-    /*Setter and Getter for vector to store children nodes*/
-    std::vector<Node *> &getChildren()
-    {
-        return children;
-    }
-    xmlNodePtr getXmlNode() const
-    {
-        return xmlNode;
-    }
+private:
+    xmlNodePtr xmlNode;
+    Node *parent;
+    std::vector<Node *> children;
+    Node *next;
 };
 /**
  * class Tree of XML
  */
 class Tree
 {
+public:
+    /*
+     * @brief Construct a new Tree object.
+     * @param xmlData
+     */
+    Tree(std::string &xmlData);
+
+    /*
+     * @brief Destruct a Tree object
+     */
+    ~Tree();
+
+    /*
+     * @brief recursively searches for a node with the given name.
+     * @param name of node.
+     * @return a pointer to the node with the matching name.
+     */
+    Node *find(const std::string &name);
+
+    /*Getters*/
+    bool getIsSelectType() const;
+    std::string getUuid() const;
+    std::string getMainTable() const;
+    Node *getRoot();
+
 private:
     xmlDocPtr xmlDoc;
 
@@ -193,51 +192,6 @@ private:
 
     /* @brief frees all memory allocated for the nodes in the tree */
     void freeTree();
-
-public:
-    /*Constructor*/
-    Tree(std::string &xmlData)
-    {
-        this->xmlData = xmlData;
-        initialize();
-    }
-    /*Destructor*/
-    ~Tree()
-    {
-        freeTree();
-        xmlFreeDoc(xmlDoc);
-    }
-
-    /*
-     * @brief recursively searches for a node with the given name.
-     * @param name of node.
-     * @return a pointer to the node with the matching name.
-     */
-    Node *find(const std::string &name);
-
-    /*Getter for isSelectType */
-    bool getIsSelectType() const
-    {
-        return isSelectType;
-    }
-
-    /*Getter for uuid */
-    std::string getUuid() const
-    {
-        return uuid;
-    }
-
-    /*Getter for main table */
-    std::string getMainTable() const
-    {
-        return mainTable;
-    }
-
-    /*Getter for root*/
-    Node *getRoot()
-    {
-        return root;
-    }
 };
 /*
  * Class ParseXmlException

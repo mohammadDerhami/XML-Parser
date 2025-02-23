@@ -1,6 +1,6 @@
 /**
  *
- * \ file config.h
+ * \ file config.hpp
  *
  * configuration programm
  *
@@ -11,11 +11,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "nlohmann/json.hpp"
+
 #include <fstream>
 #include <iostream>
-//#include <rapidjson/document.h>
-//#include <rapidjson/istreamwrapper.h>
-#include "nlohmann/json.hpp"
 #include <unistd.h>
 /**
  * @class ServerConfiguration
@@ -23,41 +22,21 @@
  */
 class ServerConfiguration
 {
+public:
+    /*Getters*/
+    int getPort() const;
+    int getMaxConnection() const;
+    std::string getIp() const;
+
+    /*Setters*/
+    void setPort(int port);
+    void setIp(const std::string &ip);
+    void setMaxConnection(int maxConnection);
+
 private:
     int port;
     std::string ip;
     int maxConnection;
-
-public:
-    /*Setter and Getter for port */
-    int getPort() const
-    {
-        return port;
-    }
-    void setPort(int port)
-    {
-        this->port = port;
-    }
-
-    /*Setter and Getter for ipAddress */
-    std::string getIp() const
-    {
-        return ip;
-    }
-    void setIp(const std::string &ip)
-    {
-        this->ip = ip;
-    }
-
-    /*Setter and Getter for maxConnection*/
-    void setMaxConnection(int maxConnection)
-    {
-        this->maxConnection = maxConnection;
-    }
-    int getMaxConnection() const
-    {
-        return maxConnection;
-    }
 };
 
 /**
@@ -66,21 +45,16 @@ public:
  */
 class DatabaseConfiguration
 {
+public:
+    /*Getters*/
+    std::string getFilePath() const;
+
+    /*Setters*/
+    void setFilePath(const std::string &filePath);
+
 private:
     std::string filePath;
-
-public:
-    /*Setter and Getter for filePath */
-    std::string getFilePath() const
-    {
-        return filePath;
-    }
-    void setFilePath(const std::string &filePath)
-    {
-        this->filePath = filePath;
-    }
 };
-
 /**
  * @class configuration
  *
@@ -88,6 +62,20 @@ public:
  */
 class Configuration
 {
+public:
+    /**
+     * @brief config program
+     *
+     * @param argc , argv
+     */
+    void config(int argc, char *argv[]);
+
+    /*Getters*/
+    DatabaseConfiguration &getDatabaseConfig();
+
+    /*Setters*/
+    ServerConfiguration &getServerConfig();
+
 private:
     DatabaseConfiguration databaseConfig;
     ServerConfiguration serverConfig;
@@ -127,24 +115,5 @@ private:
      * @param : argc -> number of arguments , argv -> arguments
      */
     std::string commandLineArgs(int argc, char *argv[]);
-
-public:
-    /**
-     * @brief config program
-     *
-     * @param argc , argv
-     */
-    void config(int argc, char *argv[]);
-
-    /* Getter for DatabaseConfig */
-    DatabaseConfiguration &getDatabaseConfig()
-    {
-        return databaseConfig;
-    }
-    /* Getter for ServerConfig */
-    ServerConfiguration &getServerConfig()
-    {
-        return serverConfig;
-    }
 };
 #endif

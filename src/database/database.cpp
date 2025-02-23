@@ -1,4 +1,4 @@
-#include "database.h"
+#include "database.hpp"
 
 namespace Sqlite
 {
@@ -7,6 +7,17 @@ namespace Sqlite
  * Implementation for "Database" class
  *
  */
+
+DatabaseManager::DatabaseManager(const DatabaseConfiguration &databaseConfiguration) :
+    fileName {databaseConfiguration.getFilePath()}
+{
+    openDatabase();
+}
+
+DatabaseManager::~DatabaseManager()
+{
+    closeDatabase();
+}
 
 /* Opens a database connection usint the specified file name */
 void DatabaseManager::openDatabase()
@@ -251,6 +262,11 @@ std::string DatabaseManager::fetchAllTablesAsXML()
 
     xmlStream << "</database>\n";
     return xmlStream.str();
+}
+
+sqlite3 *DatabaseManager::getDatabase() const
+{
+    return database;
 }
 
 } /* namespace Sqlite */

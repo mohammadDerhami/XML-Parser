@@ -1,6 +1,6 @@
-#include "database.h"
-#include "parser.h"
-#include "socket.h"
+#include "database.hpp"
+#include "parser.hpp"
+#include "socket.hpp"
 
 #include <iostream>
 
@@ -31,7 +31,7 @@ public:
         server();
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        if (socket->isRunning()) {
+        if (socket->isOpen()) {
             std::cout << "Server started. Press Enter to stop...\n\n";
 
             /*Start the thread that waits for user input to stop the server.*/
@@ -49,13 +49,13 @@ public:
             std::cout << "Server failed to start. Check logs for "
                          "errors.\n";
     }
-    Application() : socket(nullptr), databaseManager(nullptr), xmlParser(nullptr)
+    Application() : socket {nullptr}, databaseManager {nullptr}, xmlParser {nullptr}
     {
     }
     /* Destructor cleans up resources and stops the server if running */
     ~Application()
     {
-        if (socket->isRunning())
+        if (socket->isOpen())
             socket->stop();
 
         if (serverThread.joinable())
@@ -78,15 +78,15 @@ private:
     /* Initializes the socket and starts the server in a separate thread */
     void server()
     {
-        socket = new Socket(configuration.getServerConfig());
+        socket = new Socket {configuration.getServerConfig()};
         serverThread = std::thread(&Socket::createSocket, socket);
     }
 
     /* Processes incoming client data and stores it in the database */
     void processAndStoreClientData()
     {
-        xmlParser = new XML::Parser();
-        databaseManager = new DatabaseManager(configuration.getDatabaseConfig());
+        xmlParser = new XML::Parser{};
+        databaseManager = new DatabaseManager{configuration.getDatabaseConfig()};
         while (true)
 
         {
@@ -94,11 +94,11 @@ private:
 
             /*Wait for data from clients or server stop signal.*/
             socket->getCV().wait(lock, [this] {
-                return ! socket->getWaitingClients().empty() || ! socket->isRunning();
+                return ! socket->getWaitingClients().empty() || ! socket->isOpen();
             });
 
             // Break if server is stopped and no more waiting clients
-            if (! socket->isRunning() && socket->getWaitingClients().empty())
+            if (! socket->isOpen() && socket->getWaitingClients().empty())
                 break;
 
             // Get client from waiting queue and pop it

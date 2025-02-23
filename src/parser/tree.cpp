@@ -1,4 +1,4 @@
-#include "tree.h"
+#include "tree.hpp"
 namespace XML
 {
 
@@ -7,6 +7,10 @@ namespace XML
  * Implementation for "Node" class
  *
  */
+
+Node::Node(xmlNodePtr node) : xmlNode {node}, parent {nullptr}, next {nullptr}
+{
+}
 
 /* Checks if the current node is an object node(has child element)*/
 bool Node::isObjectNode()
@@ -58,6 +62,15 @@ std::string Node::getName()
     return xmlCharToString(xmlNode->name);
 }
 
+/* Returns first child*/
+Node *Node::getChild() const
+{
+    if (! children.empty())
+        return children.front();
+    else
+        return nullptr;
+}
+
 /* Fills a vector with the property names of the current node */
 std::vector<std::string> Node::collectPropertyNames()
 {
@@ -87,6 +100,32 @@ std::vector<std::string> Node::collectPropertyValues()
     return propertyValues;
 }
 
+void Node::setNext(Node *next)
+{
+    this->next = next;
+}
+std::vector<Node *> &Node::getChildren()
+{
+    return children;
+}
+void Node::setParent(Node *parent)
+{
+    this->parent = parent;
+}
+
+xmlNodePtr Node::getXmlNode() const
+{
+    return xmlNode;
+}
+Node *Node::getNext() const
+{
+    return next;
+}
+Node *Node::getParent() const
+{
+    return parent;
+}
+
 /*
  *
  *
@@ -94,6 +133,17 @@ std::vector<std::string> Node::collectPropertyValues()
  *
  *
  */
+
+Tree::Tree(std::string &xmlData)
+{
+    this->xmlData = xmlData;
+    initialize();
+}
+Tree::~Tree()
+{
+    freeTree();
+    xmlFreeDoc(xmlDoc);
+}
 
 /*
  * Initializes the Tree object by parsing the provided XML data.
@@ -164,7 +214,7 @@ Node *Tree::buildTree(xmlNodePtr xmlNode, Node *parent)
     node->setParent(parent);
 
     /*lastChild node (next of child node)*/
-    Node *lastChild = nullptr;
+    Node *lastChild {nullptr};
     for (xmlNodePtr cur = xmlNode->children; cur; cur = cur->next) {
         if (cur->type == XML_ELEMENT_NODE) {
             Node *child = buildTree(cur, node);
@@ -242,5 +292,22 @@ void Tree::freeTree()
     }
     allNodes.clear();
 }
+bool Tree::getIsSelectType() const
+{
+    return isSelectType;
+}
+std::string Tree::getUuid() const
+{
+    return uuid;
+}
+std::string Tree::getMainTable() const
+{
+    return mainTable;
+}
+Node *Tree::getRoot()
+{
+    return root;
+}
+
 } /*namespace XML*/
 

@@ -1,5 +1,5 @@
 /**
- * \file server.h
+ * \file socket.hpp
  *
  * socket structure.
  *
@@ -10,8 +10,8 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include "client.h"
-#include "config.h"
+#include "client.hpp"
+#include "config.hpp"
 
 /**
  * @ class socket
@@ -19,15 +19,60 @@
  */
 class Socket
 {
-private:
-    /* Server Configuration */
-    ServerConfiguration serverConfig;
+public:
+    /*
+     * @brief Construct a new Socket object.
+     * @param object of SeverConfig
+     */
+    Socket(ServerConfiguration &serverConfig);
 
+    /*
+     * @brief Destruct a Socket object
+     */
+    ~Socket();
+
+    /**
+     *
+     * Methods :
+     *
+     */
+
+    /*@brief close server*/
+    void stop();
+
+    /*@brief checks whether socket is open or not*/
+    bool isOpen();
+
+    /*
+     * @brief Creates a socket for  the server using the provided
+     * configuration.
+     *
+     *
+     * @warning this method throws a SocketException if:
+     * -There is an error creating the socket.
+     * -The socket binding failes.
+     * -The listening on the socket failes.
+     * -Accepting incoming client connections fails.
+     *
+     */
+    void createSocket();
+
+    /*Getters*/
+    int getSockfd() const;
+    const std::vector<Client *> &getClients();
+    std::queue<Client *> &getWaitingClients();
+    std::mutex &getMutex();
+    std::condition_variable &getCV();
+
+private:
     /* IP */
     std::string ip;
 
     /* Port */
     int port;
+
+    /*Max clients that can connect*/
+    int maxConnection;
 
     /*Socket discriptor*/
     int sockfd;
@@ -157,91 +202,6 @@ private:
      * @param instance of client
      */
     void pushToQueue(Client *client);
-
-public:
-    /*Constructor*/
-    Socket(ServerConfiguration &serverConfig) :
-        sockfd(-1),
-        isBound(false),
-        isListening(false),
-        clientsNum(0)
-    {
-        this->serverConfig = serverConfig;
-        ip = serverConfig.getIp();
-        port = serverConfig.getPort();
-    }
-
-    /*Destructor*/
-    ~Socket()
-    {
-        for (Client *client : clients) {
-            delete client;
-            client = nullptr;
-        }
-
-        clients.clear();
-    }
-    /**
-     *
-     * Methods :
-     *
-     */
-
-    /*@brief close server*/
-    void stop();
-
-    /*@brief checks whether socket is running or not*/
-    bool isRunning();
-
-    /*
-     * @brief Creates a socket for  the server using the provided
-     * configuration.
-     *
-     *
-     * @warning this method throws a SocketException if:
-     * -There is an error creating the socket.
-     * -The socket binding failes.
-     * -The listening on the socket failes.
-     * -Accepting incoming client connections fails.
-     *
-     */
-    void createSocket();
-
-    /*Getter for sockfd*/
-    int getSockfd() const
-    {
-        return sockfd;
-    }
-
-    /*Getter for clients*/
-    const std::vector<Client *> &getClients()
-    {
-        return clients;
-    }
-
-    /*Getter for waitingClients */
-    std::queue<Client *> &getWaitingClients()
-    {
-        return waitingClients;
-    }
-
-    /*Getter for mutex*/
-    std::mutex &getMutex()
-    {
-        return socketMtx;
-    }
-
-    /*Getter for cv*/
-    std::condition_variable &getCV()
-    {
-        return cv;
-    }
-
-    /*Getter for serverConfig*/
-    ServerConfiguration &getServerConfig()
-    {
-        return serverConfig;
-    }
 };
 /*
  * To handel socket exceptions

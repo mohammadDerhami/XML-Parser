@@ -7,7 +7,7 @@
  * \author : MohammadDerhami
  */
 
-#include "config.h"
+#include "config.hpp"
 
 /**
  *
@@ -166,5 +166,67 @@ void Configuration::printVersion()
 
     std::cout << "Application Version: " << version << std::endl;
     std::cout << "Release Date: " << releaseDate << std::endl;
+}
+
+DatabaseConfiguration &Configuration::getDatabaseConfig()
+{
+    return databaseConfig;
+}
+ServerConfiguration &Configuration::getServerConfig()
+{
+    return serverConfig;
+}
+
+/**
+ *
+ *
+ * Implementation for "ServerConfiguraiton" class
+ *
+ *
+ */
+int ServerConfiguration::getPort() const
+{
+    return port;
+}
+int ServerConfiguration::getMaxConnection() const
+{
+    return maxConnection;
+}
+
+std::string ServerConfiguration::getIp() const
+{
+    return ip;
+}
+
+void ServerConfiguration::setPort(int port)
+{
+    this->port = port;
+}
+
+void ServerConfiguration::setIp(const std::string &ip)
+{
+    this->ip = ip;
+}
+
+void ServerConfiguration::setMaxConnection(int maxConnection)
+{
+    this->maxConnection = maxConnection;
+}
+
+/**
+ *
+ *
+ * Implementation for "DatabaseConfiguration" class
+ *
+ *
+ */
+
+std::string DatabaseConfiguration::getFilePath() const
+{
+    return filePath;
+}
+void DatabaseConfiguration::setFilePath(const std::string &filePath)
+{
+    this->filePath = filePath;
 }
 
