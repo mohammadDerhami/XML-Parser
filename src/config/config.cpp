@@ -138,11 +138,16 @@ void Configuration::printHelp()
                  "\n\nAfter running the program , to connect to the socket : \n\n"
                  "telnet <ip><port> -> by defualt : telnet localhost 8080\n\n\n"
                  "To insert into the database : Enter XML data \n\n"
-                 "To Select(view) the data in the database in XML format, Enter :\n\n"
-                 "49 bytes\n"
+                 "To Select(view) the data in the database in XML format :\n\n"
                  "<request>\n"
                  "<operation type=\"select\"/>\n"
-                 "</request>\n";
+                 "</request>(49 bytes)\n\n\n"
+                 "To Select one table in XML format :\n\n"
+                 "<request>\n"
+                 "<operation type=\"select\">\n"
+                 "<table>name</table>\n"
+                 "</operation>\n"
+                 "</request>\n\n";
 }
 /*Prints the implementation steps of application*/
 void Configuration::displayProgramSteps()

@@ -167,13 +167,13 @@ void Tree::initialize()
         Node *uuidNode = find("uuid");
 
         if (! uuidNode)
-            throw ParseXmlException("Uuid node not found!!!");
+            throw ParseXmlException("Uuid node not found!!!\n");
 
         uuid = uuidNode->getContent();
 
         Node *parentNode = uuidNode->getParent();
         if (! parentNode)
-            throw ParseXmlException("Parent of uuid node not found!!!");
+            throw ParseXmlException("Parent of uuid node not found!!!\n");
 
         mainTable = parentNode->getName();
 
@@ -231,10 +231,14 @@ Node *Tree::buildTree(xmlNodePtr xmlNode, Node *parent)
 /*
  *Determines the type of the XML operation(select or insert).
  *Updates the isSelectType.
+ *
+ *Throws an exception if :
+ *-type attribute is nall.
  */
 void Tree::determineType()
 {
     std::string operationType;
+    std::string tableName;
 
     for (Node *node : root->getChildren()) {
         if (node->isElementNode() && strcmp(node->getName().c_str(), "operation") == 0) {
@@ -242,14 +246,25 @@ void Tree::determineType()
             if (type != nullptr) {
                 operationType = reinterpret_cast<const char *>(type);
                 xmlFree(type);
+            } else
+                throw ParseXmlException("type attribute is null in <operation> element\n");
+
+            for (Node *childNode : node->getChildren()) {
+                if (childNode->isElementNode() &&
+                    strcmp(childNode->getName().c_str(), "table") == 0) {
+                    tableName = childNode->getContent();
+                    break;
+                }
             }
+
             break;
         }
     }
 
-    if (strcmp(operationType.c_str(), "select") == 0)
+    if (strcmp(operationType.c_str(), "select") == 0) {
         isSelectType = true;
-    else
+        this->tableName = tableName;
+    } else
         isSelectType = false;
 }
 
@@ -307,6 +322,10 @@ std::string Tree::getMainTable() const
 Node *Tree::getRoot()
 {
     return root;
+}
+std::string Tree::getTableName() const
+{
+    return tableName;
 }
 
 } /*namespace XML*/

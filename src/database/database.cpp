@@ -1,6 +1,6 @@
 #include "database.hpp"
 
-namespace Sqlite
+namespace SQLite
 {
 /**
  *
@@ -269,4 +269,4 @@ sqlite3 *DatabaseManager::getDatabase() const
     return database;
 }
 
-} /* namespace Sqlite */
+} /* namespace SQLite */

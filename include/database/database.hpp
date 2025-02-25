@@ -17,7 +17,8 @@
 #include <sqlite3.h>
 #include <sstream>
 #include <vector>
-namespace Sqlite
+
+namespace SQLite
 {
 /**
  * DatabaseManager Class
@@ -75,13 +76,22 @@ public:
 
     void insertIntoTable(const std::string &uuid, const std::vector<std::string> &names,
                          const std::vector<std::string> &values, const std::string &tableName);
+    /*
+     * @brief Fetch data of table as xml
+     * @param name of table
+     * @return xml data
+     * @warning This method throws DatabaseException if :
+     * -query does not prepare
+     * -table is empty
+     */
+    std::string fetchTableDataAsXML(const std::string &tableName);
 
     /*
      * @brief Fetch all data in database
      * @return string of xml data
      */
     std::string fetchAllTablesAsXML();
-    
+
     /*Getters*/
     sqlite3 *getDatabase() const;
 
@@ -141,16 +151,6 @@ private:
      * @return query
      */
     std::string queryAllTableNames();
-
-    /*
-     * @brief Fetch data of table as xml
-     * @param name of table
-     * @return xml data
-     * @warning This method throws DatabaseException if :
-     * -query does not prepare
-     * -table is empty
-     */
-    std::string fetchTableDataAsXML(const std::string &tableName);
 
     /*
      * @brief Create query for SELECT table.

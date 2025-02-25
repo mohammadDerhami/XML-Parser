@@ -20,10 +20,13 @@ void Parser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
     Tree *tree;
     try {
         std::string xmlData = client->getInputData();
-        tree = new Tree{xmlData};
+        tree = new Tree {xmlData};
 
         if (tree->getIsSelectType()) {
-            client->setResult(database->fetchAllTablesAsXML());
+            if (! tree->getTableName().empty())
+                client->setResult(database->fetchTableDataAsXML(tree->getTableName()));
+            else
+                client->setResult(database->fetchAllTablesAsXML());
 
             delete tree;
             tree = nullptr;

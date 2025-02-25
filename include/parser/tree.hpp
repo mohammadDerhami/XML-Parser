@@ -127,6 +127,7 @@ public:
     std::string getUuid() const;
     std::string getMainTable() const;
     Node *getRoot();
+    std::string getTableName() const;
 
 private:
     xmlDocPtr xmlDoc;
@@ -142,6 +143,8 @@ private:
     std::string xmlData;
 
     bool isSelectType;
+
+    std::string tableName;
 
     /*
      *

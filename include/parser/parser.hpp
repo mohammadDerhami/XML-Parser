@@ -9,7 +9,7 @@
 #include "database.hpp"
 #include "tree.hpp"
 
-using namespace Sqlite;
+using namespace SQLite;
 namespace XML
 {
 /*

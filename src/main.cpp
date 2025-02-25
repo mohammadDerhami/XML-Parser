@@ -13,7 +13,7 @@ private:
 
     XML::Parser *xmlParser;
 
-    Sqlite::DatabaseManager *databaseManager;
+    SQLite::DatabaseManager *databaseManager;
 
     std::thread serverThread;
 
@@ -85,8 +85,9 @@ private:
     /* Processes incoming client data and stores it in the database */
     void processAndStoreClientData()
     {
-        xmlParser = new XML::Parser{};
-        databaseManager = new DatabaseManager{configuration.getDatabaseConfig()};
+        xmlParser = new XML::Parser {};
+        databaseManager = new SQLite::DatabaseManager {configuration.getDatabaseConfig()};
+
         while (true)
 
         {
