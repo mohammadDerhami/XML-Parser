@@ -159,11 +159,14 @@ void Tree::initialize()
     if (xmlDoc == nullptr)
         throw ParseXmlException("Failed to parse XML document!!!\n");
 
+    /*Builds tree*/
     root = buildTree(xmlDocGetRootElement(xmlDoc));
 
+    /*Determines xmldata type*/
     determineType();
 
     if (! isSelectType) {
+        /*Finds UUID node*/
         Node *uuidNode = find("uuid");
 
         if (! uuidNode)
@@ -213,7 +216,7 @@ Node *Tree::buildTree(xmlNodePtr xmlNode, Node *parent)
     allNodes.push_back(node);
     node->setParent(parent);
 
-    /*lastChild node (next of child node)*/
+    /*lastChild (next of child node)*/
     Node *lastChild {nullptr};
     for (xmlNodePtr cur = xmlNode->children; cur; cur = cur->next) {
         if (cur->type == XML_ELEMENT_NODE) {
@@ -329,4 +332,3 @@ std::string Tree::getTableName() const
 }
 
 } /*namespace XML*/
-

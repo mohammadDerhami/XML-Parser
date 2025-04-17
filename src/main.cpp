@@ -6,20 +6,6 @@
 
 class Application
 {
-private:
-    Configuration configuration;
-
-    Socket *socket;
-
-    XML::Parser *xmlParser;
-
-    SQLite::DatabaseManager *databaseManager;
-
-    std::thread serverThread;
-
-    /* Thread to handle server stopping on user input.*/
-    std::thread stopServerThread;
-
 public:
     /* Runs a application , managing configuraion , socket creation , and input handling.*/
     void run(int argc, char *argv[])
@@ -75,6 +61,19 @@ public:
     }
 
 private:
+    Configuration configuration;
+
+    Socket *socket;
+
+    XML::Parser *xmlParser;
+
+    SQLite::DatabaseManager *databaseManager;
+
+    std::thread serverThread;
+
+    /* Thread to handle server stopping on user input.*/
+    std::thread stopServerThread;
+
     /* Initializes the socket and starts the server in a separate thread */
     void server()
     {
@@ -98,11 +97,11 @@ private:
                 return ! socket->getWaitingClients().empty() || ! socket->isOpen();
             });
 
-            // Break if server is stopped and no more waiting clients
+            /* Break if server is stopped and no more waiting clients*/
             if (! socket->isOpen() && socket->getWaitingClients().empty())
                 break;
 
-            // Get client from waiting queue and pop it
+            /* Get client from waiting queue and pop it*/
             Client *client = socket->getWaitingClients().front();
             socket->getWaitingClients().pop();
 
@@ -111,6 +110,7 @@ private:
                                     databaseManager);
 
             parseThread.detach();
+
             /*Store the parsing thread in clien*/
             client->setParseThread(std::move(parseThread));
         }

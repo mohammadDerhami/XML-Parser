@@ -123,7 +123,6 @@ void Configuration::configurationProgram(const std::string &configFilePath)
 }
 
 /*Prints the help message for command-line usage.*/
-
 void Configuration::printHelp()
 {
     std::cout << "Usage:\n"
@@ -149,6 +148,7 @@ void Configuration::printHelp()
                  "</operation>\n"
                  "</request>\n\n";
 }
+
 /*Prints the implementation steps of application*/
 void Configuration::displayProgramSteps()
 {
@@ -163,7 +163,6 @@ void Configuration::displayProgramSteps()
 }
 
 /*Prints the current version of the application */
-
 void Configuration::printVersion()
 {
     const std::string version = "1.0";

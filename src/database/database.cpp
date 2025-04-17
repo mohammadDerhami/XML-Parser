@@ -19,7 +19,7 @@ DatabaseManager::~DatabaseManager()
     closeDatabase();
 }
 
-/* Opens a database connection usint the specified file name */
+/* Opens a database connection using the specified file name */
 void DatabaseManager::openDatabase()
 {
     if (sqlite3_open(fileName.c_str(), &database) != SQLITE_OK) {
@@ -40,6 +40,7 @@ void DatabaseManager::closeDatabase()
 /* Checks if a table with the given name exists	in the database.*/
 bool DatabaseManager::isExistTable(const std::string &name)
 {
+    /*Thread safety*/
     std::lock_guard<std::mutex> lock(dbMutex);
     std::string query = queryIsExistTable(name);
 
@@ -47,6 +48,7 @@ bool DatabaseManager::isExistTable(const std::string &name)
 
     sqlite3_stmt *stmt;
 
+    /*Prepares the SQL statement*/
     if (sqlite3_prepare_v2(database, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
 
     {
@@ -55,10 +57,12 @@ bool DatabaseManager::isExistTable(const std::string &name)
         throw DatabaseException(message);
     }
 
+    /*Executes query and check if any rows returned*/
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         exist = true;
     }
 
+    /*Cleans up statement*/
     sqlite3_finalize(stmt);
     return exist;
 }
@@ -76,11 +80,13 @@ void DatabaseManager::createTable(const std::string &name,
                                   const std::vector<std::string> &properties, bool isMainTable,
                                   const std::string &mainTable)
 {
+    /*Thread safety*/
     std::lock_guard<std::mutex> lock(dbMutex);
     std::string query = queryCreate(name, properties, isMainTable, mainTable);
 
     char *errMsg = nullptr;
 
+    /*Executes the CREATE TABLE statement*/
     if (sqlite3_exec(database, query.c_str(), 0, 0, &errMsg) != SQLITE_OK) {
         if (errMsg)
             sqlite3_free(errMsg);
@@ -99,19 +105,26 @@ std::string DatabaseManager::queryCreate(const std::string &name,
     std::string propertyQuery;
 
     if (isMainTable) {
+
+        /*Main table has UUID primary key*/
         propertyQuery = "uuid TEXT PRIMARY KEY NOT NULL ";
         query += propertyQuery;
 
+        /*Adds each property as NOT NULL TEXT column*/
         for (const std::string property : properties) {
             propertyQuery = " , " + property + " TEXT NOT NULL  ";
             query += propertyQuery;
         }
         query += ");";
     } else {
+
+        /*SecoNdary table has properties first*/
         for (const std::string property : properties) {
             propertyQuery = property + " TEXT NOT NULL , ";
             query += propertyQuery;
         }
+
+        /*Then UUID foreign key reference*/
         query += "uuid TEXT ,"
                  "FOREIGN KEY (uuid) REFERENCES " +
                  mainTable + " (uuid));";
@@ -125,24 +138,28 @@ void DatabaseManager::insertIntoTable(const std::string &uuid,
                                       const std::vector<std::string> &values,
                                       const std::string &tableName)
 {
+    /*Thread safety*/
     std::lock_guard<std::mutex> lock(dbMutex);
 
     std::string query = queryInsert(names, tableName);
 
     sqlite3_stmt *stmt;
+
+    /*Prepares parameterized INSERT statement*/
     if (sqlite3_prepare_v2(database, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         std::string message = std::string("Error in insert in to table \n") +
                               sqlite3_errmsg(database);
 
         throw DatabaseException(message);
     }
-
+    /*Binds parameters safely*/
     sqlite3_bind_text(stmt, 1, uuid.c_str(), -1, SQLITE_STATIC);
 
     for (int i = 0; i < values.size(); i++) {
         sqlite3_bind_text(stmt, i + 2, values[i].c_str(), -1, SQLITE_STATIC);
     }
 
+    /*Executes statement*/
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         std::string message = std::string("Error executing insert \n") + sqlite3_errmsg(database);
 
@@ -156,9 +173,13 @@ std::string DatabaseManager::queryInsert(const std::vector<std::string> &names,
                                          const std::string &tableName)
 {
     std::string query = "INSERT INTO " + tableName + " (uuid";
+
+    /*Adds column names*/
     for (const std::string name : names) {
         query += ", " + name;
     }
+
+    /*Adds parameter placeholders*/
     query += ") VALUES (? ";
     for (int i = 0; i < names.size(); i++) {
         query += ",?";
@@ -183,6 +204,7 @@ std::vector<std::string> DatabaseManager::getAllTableNames()
         throw DatabaseException(message);
     }
 
+    /*Process each row of results*/
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         const char *tableName = (const char *) sqlite3_column_text(stmt, 0);
 
@@ -225,6 +247,8 @@ std::string DatabaseManager::fetchTableDataAsXML(const std::string &tableName)
         sqlite3_finalize(stmt);
         return "<" + tableName + " />\n";
     }
+
+    /*Process each row and column*/
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         for (int i = 0; i < columnCount; ++i) {
             const char *columnName = sqlite3_column_name(stmt, i);
@@ -255,6 +279,7 @@ std::string DatabaseManager::fetchAllTablesAsXML()
 
     xmlStream << "<database>\n";
 
+    /*Get data for each table*/
     std::vector<std::string> tableNames = getAllTableNames();
     for (const std::string &tableName : tableNames) {
         xmlStream << fetchTableDataAsXML(tableName);

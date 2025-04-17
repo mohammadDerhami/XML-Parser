@@ -73,7 +73,6 @@ public:
      * @warning This method throws DatabaseException if query cannot be
      * prepare or step.
      */
-
     void insertIntoTable(const std::string &uuid, const std::vector<std::string> &names,
                          const std::vector<std::string> &values, const std::string &tableName);
     /*
@@ -140,6 +139,7 @@ private:
      * @return query
      */
     std::string queryInsert(const std::vector<std::string> &names, const std::string &tableName);
+
     /*
      * @brief store name of tables in the vector.
      * @return vector of names.

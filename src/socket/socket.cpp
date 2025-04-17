@@ -63,20 +63,25 @@ void Socket::createSocket()
 void Socket::acceptClient(sockaddr_in address, int addressLen)
 {
     while (true) {
+        /*Accepts new connection*/
         int newClientSocket = accept(sockfd, (struct sockaddr *) &address,
                                      (socklen_t *) &addressLen);
         if (newClientSocket < 0) {
             throw SocketException("Exception in accept!!!\n");
         }
 
+        /*Increments client counter*/
         clientsNum++;
 
-        Client *client = new Client{newClientSocket, clientsNum};
+        /*Creates a new client object*/
+        Client *client = new Client {newClientSocket, clientsNum};
 
+        /*Lanches client handler in new thread*/
         std::thread clientThread(&Socket::handleClient, this, client);
 
         client->setThread(std::move(clientThread));
 
+        /*Adds client to manage list (thread-safe)*/
         std::lock_guard<std::mutex> lock(socketMtx);
         clients.push_back(client);
     }
@@ -89,17 +94,22 @@ void Socket::acceptClient(sockaddr_in address, int addressLen)
 void Socket::handleClient(Client *client)
 {
     int clientSocket = client->getClientSocket();
+
+    /*Log client connection*/
     printClientJoin(client);
 
     while (isOpen()) {
+        /*Gets data size from client*/
         std::string lengthMsg = "\nEnter the data length as 15 digits : \n";
         write(clientSocket, lengthMsg.c_str(), lengthMsg.length());
 
         int size = readDataSize(client);
 
+        /*Skips if invalid size*/
         if (size <= 0)
             continue;
 
+        /*Gets actual data from client*/
         std::string dataMsg = "\nEnter the data of size " + std::to_string(size) + " : \n";
         write(clientSocket, dataMsg.c_str(), dataMsg.length());
 
@@ -112,23 +122,28 @@ void Socket::handleClient(Client *client)
             continue;
         }
 
+        /*Processes client data*/
         client->setInputData(buffer);
 
         pushToQueue(client);
 
+        /*Notify worker thread*/
         cv.notify_one();
 
         printClientData(client);
 
+        /*Waits for processing to complete*/
         {
             std::unique_lock<std::mutex> lock(client->getMutex());
             client->getCV().wait(lock, [client] { return client->getResultReady(); });
         }
 
+        /*Sends result back to client*/
         write(clientSocket, client->getResult().c_str(), client->getResult().length());
 
         client->reset();
 
+        /*Checks if client wants to continue*/
         std::string continueMsg = "\nPress 'y' if you want to continue .\n";
         write(clientSocket, continueMsg.c_str(), continueMsg.length());
 
@@ -137,6 +152,7 @@ void Socket::handleClient(Client *client)
         if (userChoice != 'y')
             break;
     }
+    /*Cleans up client connection*/
     closeClient(client);
 }
 
@@ -161,6 +177,7 @@ char Socket::readClientChoice(Client *client)
         return '\0';
     }
 
+    /*Returns first character only*/
     return buffer[0];
 }
 
@@ -177,7 +194,7 @@ char Socket::readClientChoice(Client *client)
 int Socket::readDataSize(Client *client)
 {
     char buffer[1024];
-
+    /*Clears buffer*/
     memset(buffer, 0, sizeof(buffer));
 
     int bytesRead = read(client->getClientSocket(), buffer, sizeof(buffer));
@@ -348,4 +365,3 @@ std::condition_variable &Socket::getCV()
 {
     return cv;
 }
-

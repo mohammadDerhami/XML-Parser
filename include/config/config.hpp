@@ -58,7 +58,7 @@ private:
 /**
  * @class configuration
  *
- * @brief this class for configuration the programm
+ * @brief this class for configuration the program
  */
 class Configuration
 {

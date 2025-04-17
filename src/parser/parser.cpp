@@ -20,6 +20,8 @@ void Parser::parseAndStoreXmlData(Client *client, DatabaseManager *database)
     Tree *tree;
     try {
         std::string xmlData = client->getInputData();
+
+        /*Builds the tree*/
         tree = new Tree {xmlData};
 
         if (tree->getIsSelectType()) {
