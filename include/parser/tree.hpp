@@ -17,6 +17,7 @@
 #include <libxml/xmlmemory.h>
 #include <memory>
 #include <stack>
+#include <unordered_map>
 #include <vector>
 
 namespace XML
@@ -82,12 +83,18 @@ public:
      */
     std::vector<std::string> collectPropertyValues();
 
+    /*
+     * @brief Adds child
+     *
+     * @param child node
+     */
+    void addChild(Node *child);
     /*Setters*/
     void setNext(Node *next);
-    std::vector<Node *> &getChildren();
     void setParent(Node *parent);
 
     /*Getters*/
+    std::vector<Node *> &getChildren();
     xmlNodePtr getXmlNode() const;
     Node *getNext() const;
     Node *getParent() const;
@@ -170,15 +177,14 @@ private:
     void initialize();
 
     /*
-     * @brief recursively builds a tree structure from an XML node.
+     * @brief Non-Recursively builds a tree structure from an XML node.
      *
      * @param
      * -xmlNode a pointer to the libxml2 XML node to process.
-     * -parent a pointer to the parent node.
      *
      * @return a pointer to the newly created node.
      */
-    Node *buildTree(xmlNodePtr xmlNode, Node *parent = nullptr);
+    Node *buildTree(xmlNodePtr xmlNode);
 
     /*
      * @brief Determines the type of the XML operation(select or insert).
@@ -187,11 +193,11 @@ private:
     void determineType();
 
     /*
-     * @brief Recursively searches for a node with the given name
+     * @brief Non-Recursively searches for a node with the given name
      * @param node->root , name of node
      * @return a pointer to the node with the matching name
      */
-    Node *findNode(Node *node, const std::string &name);
+    Node *findNode(Node *root, const std::string &name);
 
     /* @brief frees all memory allocated for the nodes in the tree */
     void freeTree();

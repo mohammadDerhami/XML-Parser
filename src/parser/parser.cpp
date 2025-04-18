@@ -72,7 +72,7 @@ void Parser::handleException(Client *client, const std::exception &e, Tree *tree
 }
 
 /*
- * Stores XML nodes into a specified database by recursively traversing the XML tree.
+ * Stores XML nodes into a specified database by Non-recursively traversing the XML tree.
  *
  * This method process each node in the XML tree ( of the Tree object ).
  * For each node:
@@ -85,7 +85,49 @@ void Parser::handleException(Client *client, const std::exception &e, Tree *tree
  * 4.The method recursively processes child nodes and sibling nodes to ensure all nodes in the
  * XML structure are stored in the database.
  */
-void Parser::storeXmlNodesInDatabase(Tree *tree, Node *current, const std::string &uuid,
+
+void Parser::storeXmlNodesInDatabase(Tree *tree, Node *root, const std::string &uuid,
+                                     const std::string &mainTable, DatabaseManager *database)
+{
+    if (! root)
+        return;
+
+    std::stack<Node *> nodeStack;
+    nodeStack.push(root);
+
+    while (! nodeStack.empty()) {
+        Node *node = nodeStack.top();
+        nodeStack.pop();
+
+        if (node->isElementNode() && node->hasPropertyNode()) {
+            std::string nodeName = node->getName();
+
+            std::vector<std::string> names = node->collectPropertyNames();
+            std::vector<std::string> values = node->collectPropertyValues();
+
+            if (database->isExistTable(node->getName())) {
+                database->insertIntoTable(uuid, names, values, nodeName);
+            } else {
+                bool isMainTable = (mainTable == nodeName);
+                database->createTable(nodeName, names, isMainTable, mainTable);
+
+                database->insertIntoTable(uuid, names, values, nodeName);
+            }
+        }
+
+        Node *next = node->getNext();
+        if (next) {
+            nodeStack.push(next);
+        }
+
+        Node *child = node->getChild();
+        if (child) {
+            nodeStack.push(child);
+        }
+    }
+}
+/* Stores XML nodes into a specified database by Non-recursively traversing the XML tree.*/
+/*void Parser::storeXmlNodesInDatabase(Tree *tree, Node *current, const std::string &uuid,
                                      const std::string &mainTable, DatabaseManager *database)
 {
     while (current) {
@@ -111,21 +153,6 @@ void Parser::storeXmlNodesInDatabase(Tree *tree, Node *current, const std::strin
         Node *next = current->getNext();
         current = next;
     }
-}
+}*/
 
-/* Inserts data into the specified table in the database*/
-void Parser::insertIntoDatabase(DatabaseManager *database, const std::string &uuid,
-                                std::vector<std::string> &names, std::vector<std::string> &values,
-                                const std::string &tableName)
-{
-    database->insertIntoTable(uuid, names, values, tableName);
-}
-
-/* Create a new table in the database based on node properties */
-void Parser::createTableIntoDatabase(DatabaseManager *database, const std::string &mainTable,
-                                     const std::string &tableName, std::vector<std::string> &names)
-{
-    bool isMainTable = (mainTable == tableName);
-    database->createTable(tableName, names, isMainTable, mainTable);
-}
 } /*namespace XML*/

@@ -100,17 +100,23 @@ std::vector<std::string> Node::collectPropertyValues()
     return propertyValues;
 }
 
+/* Adds child*/
+void Node::addChild(Node *child)
+{
+    children.push_back(child);
+}
+
 void Node::setNext(Node *next)
 {
     this->next = next;
 }
-std::vector<Node *> &Node::getChildren()
-{
-    return children;
-}
 void Node::setParent(Node *parent)
 {
     this->parent = parent;
+}
+std::vector<Node *> &Node::getChildren()
+{
+    return children;
 }
 
 xmlNodePtr Node::getXmlNode() const
@@ -184,30 +190,72 @@ void Tree::initialize()
             throw ParseXmlException("Uuid not found!!!\n");
     }
 }
-
 /*
- * Recursively builds a tree structure from an XML node.
+ * Non-Recursively builds a tree structure from an XML node.
  *
- * Note:
- * Recursively builds a tree structure from an XML node.
- * This function operates in a depth-first manner, traversing the XML document
- * and creating corresponding Node objects for each XML element node encountered.
+ * This method constructs a tree of Node objects corresponding to the
+ * XML structure starting from the provided xmlNode. It performs a depth-first
+ * traversal of the XML document, creating Node objects for each XML
+ * element node encountered, establishing parent-child relationships,
+ * and linking sibling nodes.
  *
  * Key Points:
- * - Recursively constructs the tree by creating Node objects for each XML element node.
- * - Uses depth-first traversal to process child nodes.
- * - Maintains parent-child relationships and links sibling nodes using the `next` pointer.
- * - Tracks all created nodes in the `allNodes` list.
+ * - Constructs the tree non-recursively by utilizing a stack.
+ * - Processes each XML element node and its children in depth-first order.
+ * - Maintains parent-child relationships and sets sibling links using the `next` pointer.
+ * - Tracks all created Node objects in the `allNodes` list.
  *
  * Parameters:
- * - xmlNode: The current XML node to process.
- * - parent: The parent Node of the current XML node.
+ * - xmlNode: A pointer to the current XML node being processed.
  *
  * Returns:
- * - The root node of the subtree constructed from the given XML node.
- *
+ * - A pointer to the root Node of the constructed tree, representing
+ *   the subtree derived from the provided XML node.
  */
-Node *Tree::buildTree(xmlNodePtr xmlNode, Node *parent)
+Node *Tree::buildTree(xmlNodePtr xmlNode)
+{
+    if (! xmlNode)
+        return nullptr;
+
+    /*Create a stack to hold pairs of xmlNodePtr and Node*/
+    std::stack<std::pair<xmlNodePtr, Node *>> nodeStack;
+    Node *root = new Node(xmlNode);
+    allNodes.push_back(root);
+    nodeStack.push({xmlNode, root});
+
+    /*While there are still nodes to process in the stack*/
+    while (! nodeStack.empty()) {
+        std::pair<xmlNodePtr, Node *> nodeInfo = nodeStack.top();
+        xmlNodePtr currentXmlNode = nodeInfo.first;
+        Node *currentNode = nodeInfo.second;
+        nodeStack.pop();
+
+        Node *lastChild = nullptr;
+
+        /*Iterate through the children of the current XML node*/
+        for (xmlNodePtr cur = currentXmlNode->children; cur; cur = cur->next) {
+            if (cur->type == XML_ELEMENT_NODE) {
+                Node *child = new Node(cur);
+                allNodes.push_back(child);
+                child->setParent(currentNode);
+                currentNode->addChild(child);
+
+                /*Set the next pointer of the last child if it exists*/
+                if (lastChild) {
+                    lastChild->setNext(child);
+                }
+                lastChild = child;
+
+                /*Push the current xmlNode and the newly created child Node onto the stack*/
+                nodeStack.push({cur, child});
+            }
+        }
+    }
+    return root;
+}
+
+/*Recursively builds a tree structure from an XML node.*/
+/*Node *Tree::buildTree(xmlNodePtr xmlNode, Node *parent)
 {
     if (! xmlNode)
         return nullptr;
@@ -216,7 +264,6 @@ Node *Tree::buildTree(xmlNodePtr xmlNode, Node *parent)
     allNodes.push_back(node);
     node->setParent(parent);
 
-    /*lastChild (next of child node)*/
     Node *lastChild {nullptr};
     for (xmlNodePtr cur = xmlNode->children; cur; cur = cur->next) {
         if (cur->type == XML_ELEMENT_NODE) {
@@ -229,7 +276,7 @@ Node *Tree::buildTree(xmlNodePtr xmlNode, Node *parent)
         }
     }
     return node;
-}
+}*/
 
 /*
  *Determines the type of the XML operation(select or insert).
@@ -277,8 +324,36 @@ Node *Tree::find(const std::string &name)
     return findNode(root, name);
 }
 
+/* Non-recursive search for a node with the given name */
+Node *Tree::findNode(Node *root, const std::string &name)
+{
+    if (! root)
+        return nullptr;
+
+    /*Create a stack to hold nodes during traversal*/
+    std::stack<Node *> nodeStack;
+    nodeStack.push(root);
+
+    /*While there are still nodes to process in the stack*/
+    while (! nodeStack.empty()) {
+        Node *currentNode = nodeStack.top();
+        nodeStack.pop();
+
+        /*Check if the current node is an element node and matches the name*/
+        if (currentNode->isElementNode() && currentNode->getName() == name)
+            return currentNode;
+
+        Node *child = currentNode->getChild();
+        while (child) {
+            nodeStack.push(child);
+            child = child->getNext();
+        }
+    }
+    return nullptr;
+}
+
 /*Recursively searches for a node with the given name.*/
-Node *Tree::findNode(Node *node, const std::string &name)
+/*Node *Tree::findNode(Node *node, const std::string &name)
 {
     if (! node)
         return nullptr;
@@ -297,7 +372,7 @@ Node *Tree::findNode(Node *node, const std::string &name)
     }
 
     return nullptr;
-}
+}*/
 
 /*Frees all memory allocated for the nodes in the tree */
 void Tree::freeTree()
