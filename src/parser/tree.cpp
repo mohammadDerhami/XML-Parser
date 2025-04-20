@@ -51,13 +51,13 @@ std::string Node::xmlCharToString(const xmlChar *xml)
 }
 
 /* Returns the content of the current node */
-std::string Node::getContent()
+std::string Node::getContent() 
 {
     return xmlCharToString(xmlNodeGetContent(xmlNode));
 }
 
 /* Returns the name of the current node */
-std::string Node::getName()
+std::string Node::getName() 
 {
     return xmlCharToString(xmlNode->name);
 }
@@ -389,11 +389,11 @@ bool Tree::getIsSelectType() const
 {
     return isSelectType;
 }
-std::string Tree::getUuid() const
+const std::string &Tree::getUuid() const
 {
     return uuid;
 }
-std::string Tree::getMainTable() const
+const std::string &Tree::getMainTable() const
 {
     return mainTable;
 }
@@ -401,7 +401,7 @@ Node *Tree::getRoot()
 {
     return root;
 }
-std::string Tree::getTableName() const
+const std::string &Tree::getTableName() const
 {
     return tableName;
 }

@@ -72,8 +72,6 @@ public:
 
     /*Getters*/
     DatabaseConfiguration &getDatabaseConfig();
-
-    /*Setters*/
     ServerConfiguration &getServerConfig();
 
 private:

@@ -65,12 +65,12 @@ int Client::getClientSocket() const
 {
     return clientSocket;
 }
-std::string Client::getInputData()
+const std::string& Client::getInputData() 
 {
     std::lock_guard<std::mutex> lock(clientMtx);
     return inputData;
 }
-std::string Client::getResult()
+const std::string& Client::getResult() 
 {
     std::lock_guard<std::mutex> lock(clientMtx);
     return result;

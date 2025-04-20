@@ -131,10 +131,10 @@ public:
 
     /*Getters*/
     bool getIsSelectType() const;
-    std::string getUuid() const;
-    std::string getMainTable() const;
+    const std::string &getUuid() const;
+    const std::string &getMainTable() const;
     Node *getRoot();
-    std::string getTableName() const;
+    const std::string &getTableName() const;
 
 private:
     xmlDocPtr xmlDoc;

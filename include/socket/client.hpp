@@ -50,8 +50,8 @@ public:
     std::thread &getParseThread();
     int getId() const;
     int getClientSocket() const;
-    std::string getInputData();
-    std::string getResult();
+    const std::string& getInputData() ;
+    const std::string& getResult() ;
 
     /*Setters*/
     void setResultReady(bool resultReady);
